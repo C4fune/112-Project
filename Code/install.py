@@ -1,7 +1,7 @@
 from cmu_graphics import *
 
 def onAppStart(app):
-    app.page = "homepage"
+    app.page = "mainpage"
     app.width = 1000
     app.height = 1000
     app.musicList = {
@@ -42,6 +42,10 @@ def redrawAll(app):
     
     if app.page == "mainpage":
         drawLabel("This is Mainpage", 500, 100, size = 64)
+        drawRect(220,725,260,775, fill = None , borderWidth = 5, border = "black")
+        drawLabel("Start Game", 300, 750, size = 16)
+        drawLabel("Credits", 600, 750, size = 16)
+        drawLabel("Credits#2", 900, 750, size = 16)
         
 
 def main():
