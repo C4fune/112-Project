@@ -6,12 +6,11 @@ def onAppStart(app):
     app.width = 1000
     app.height = 1000
     
-    # Music setup
-    app.music = Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3")
+    app.music = {"homepage":Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
+                 "mainpage":Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
     app.musicOn = True
-    app.music.play(loop=True)
+    app.music[app.page].play(loop=True)
 
-    # 3D world setup
     app.worldMap = [
         [1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,1],
@@ -47,14 +46,17 @@ def onKeyHold(app, keys):
 def onMousePress(app, mouseX, mouseY):
     if app.page == "homepage":
         if 220 <= mouseX <= 480 and 725 <= mouseY <= 775:
+            app.music[app.page].pause()  # Pause current page's music
             app.page = "mainpage"
+            if app.musicOn:  # Only play new music if music is on
+                app.music[app.page].play(loop=True)
 
 def toggleMusic(app):
     if app.musicOn:
-        app.music.pause()
+        app.music[app.page].pause()
         app.musicOn = False
     else:
-        app.music.play(loop=True)
+        app.music[app.page].play(loop=True)
         app.musicOn = True
 
 def movePlayer(app, distance):
