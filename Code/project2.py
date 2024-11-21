@@ -2,12 +2,16 @@ from cmu_graphics import *
 import math
 
 def onAppStart(app):
-    app.page = "homepage"
+    app.page = "mainpage"
     app.width = 1000
     app.height = 1000
     
     app.music = {"homepage":Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
-                 "mainpage":Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
+                 "mainpage":Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+                 "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
+    app.backgroundPicture = {"introductionpage": 'cmu://872469/35224887/IntroPic.jpg'}
+    app.url = 'cmu://872469/35224887/IntroPic.jpg'
+    app.url2 = 'https://gyazo.com/592fbfd1545496d56defcc643b367b49'
     app.musicOn = True
     app.music[app.page].play(loop=True)
 
@@ -82,8 +86,12 @@ def castRay(app, angle):
             return distance
 
 def redrawAll(app):
+
+    if app.page == "introductionpage":
+       drawImage(app.url2,0,0)
+        
     if app.page == "homepage":
-        drawLabel("Beggar Life", 500, 100, size=64)
+        drawLabel("112 BackRooms", 500, 100, size=64)
         drawLabel("Unlock your true money grabbing potential", 500, 175, size=32)
         
         drawRect(220, 725, 260, 50, fill=None, border="black", borderWidth=5)
