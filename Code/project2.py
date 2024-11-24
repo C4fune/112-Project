@@ -106,12 +106,20 @@ def redrawAll(app):
 
     if app.page == "introductionpage":
        drawImage(app.url2,0,0)
-
+       musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
+       drawLabel(musicStatus, 900, 50, size=20)
+    
     if app.page == "creditspage":
-        pass
+        drawLabel("This is the creditspage")
+
+        musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
+        drawLabel(musicStatus, 900, 50, size=20)
 
     if app.page == "howtopage":
-        pass
+        drawLabel("This is the howtopage")
+
+        musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
+        drawLabel(musicStatus, 900, 50, size=20)
         
     if app.page == "homepage":
         drawLabel("112 BackRooms", 500, 100, size=64)
