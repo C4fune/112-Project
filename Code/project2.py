@@ -2,7 +2,7 @@ from cmu_graphics import *
 import math
 
 def onAppStart(app):
-    app.page = "homepage"
+    app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
     
@@ -75,8 +75,6 @@ def onMousePress(app, mouseX, mouseY):
             if app.musicOn:  # Only play new music if music is on
                 app.music[app.page].play(loop=True)   
     
-
-
 def toggleMusic(app):
     if app.musicOn:
         app.music[app.page].pause()
@@ -110,7 +108,9 @@ def castRay(app, angle):
 def redrawAll(app):
 
     if app.page == "introductionpage":
-        drawImage(app.url2,0,0)
+
+        drawImage(app.url,0,0)
+
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
@@ -128,7 +128,15 @@ def redrawAll(app):
         drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
 
     if app.page == "howtopage":
-        drawLabel("This is the howtopage", 200, 200)
+        drawLabel("How to Play 112 BackRooms!", 200, 200)
+
+        drawLabel("There are scary monsters chasing you in this game..", 200, 300)
+
+        drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!",200, 400)
+
+        drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
+
+        drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
 
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
