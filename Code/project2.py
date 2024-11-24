@@ -35,30 +35,6 @@ def onAppStart(app):
     app.moveSpeed = 0.1
     app.rotateSpeed = 0.1
 
-    # Add monster properties - start 1 block away from player
-    app.monsterX = 2.5  # Player is at 1.5, so this is 1 block to the right
-    app.monsterY = 1.5
-    app.monsterSpeed = app.moveSpeed / 2
-
-def updateMonster(app):
-    if app.page == "mainpage":
-        dx = app.playerX - app.monsterX
-        dy = app.playerY - app.monsterY
-        distance = math.sqrt(dx*dx + dy*dy)
-        
-        if distance > 0:
-            dx = (dx / distance) * app.monsterSpeed
-            dy = (dy / distance) * app.monsterSpeed
-            
-            newX = app.monsterX + dx
-            newY = app.monsterY + dy
-            if app.worldMap[int(newY)][int(newX)] == 0:
-                app.monsterX = newX
-                app.monsterY = newY
-
-def onStep(app):
-    updateMonster(app)
-
 def onKeyPress(app, key):
     if key == 'm':
         toggleMusic(app)
@@ -194,20 +170,6 @@ def redrawAll(app):
             color = rgb(255 - min(255, int(distance * 20)), 0, 0)
             drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
 
-        # Draw monster if it's in view
-        monsterScreenX = app.width * (1 + math.atan2(app.monsterY - app.playerY, 
-                                                    app.monsterX - app.playerX) / app.fov) / 2
-        monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + 
-                                  (app.monsterY - app.playerY)**2)
-        monsterSize = min(200, 2000 / monsterDistance)
-        
-        if 0 <= monsterScreenX <= app.width:
-            drawImage(app.url, 
-                     monsterScreenX - monsterSize/2,
-                     app.height/2 - monsterSize/2,
-                     width=monsterSize,
-                     height=monsterSize)
-        
         drawLabel("Use arrow keys to move", 500, 50, size=20, fill = 'red')
         drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill = 'red')
         drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20, fill = 'red')
