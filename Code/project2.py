@@ -2,7 +2,7 @@ from cmu_graphics import *
 import math
 
 def onAppStart(app):
-    app.page = "introductionpage"
+    app.page = "homepage"
     app.width = 1000
     app.height = 1000
     
@@ -163,9 +163,9 @@ def redrawAll(app):
     
     elif app.page == "mainpage":
         # Draw sky
-        drawRect(0, 0, app.width, app.height/2, fill='skyBlue')
+        drawRect(0, 0, app.width, app.height/2, fill='black')
         # Draw ground
-        drawRect(0, app.height/2, app.width, app.height/2, fill='green')
+        drawRect(0, app.height/2, app.width, app.height/2, fill='black')
         
         # Cast rays and draw walls
         for i in range(app.rayCount):
@@ -178,15 +178,15 @@ def redrawAll(app):
             # Draw wall slice
             x = i * (app.width / app.rayCount)
             color = rgb(255 - min(255, int(distance * 20)), 0, 0)
-            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color)
+            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
         
-        drawLabel("Use arrow keys to move", 500, 50, size=20)
-        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20)
-        drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20)
+        drawLabel("Use arrow keys to move", 500, 50, size=20, fill = 'red')
+        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill = 'red')
+        drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20, fill = 'red')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, size=20, fill = 'red')
+        drawRect(825, 25, 150, 50, fill=None, border = "red", borderWidth=5,)
 
 def main():
     runApp()
