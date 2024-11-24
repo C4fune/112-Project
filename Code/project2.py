@@ -15,7 +15,6 @@ def onAppStart(app):
     app.backgroundPicture = {"introductionpage": 'cmu://872469/35224887/IntroPic.jpg'}
 
     app.url = 'cmu://872469/35224887/IntroPic.jpg'
-    app.url2 = 'https://gyazo.com/592fbfd1545496d56defcc643b367b49'
     app.musicOn = True
     app.music[app.page].play(loop=True)
 
@@ -68,7 +67,13 @@ def onMousePress(app, mouseX, mouseY):
             app.page = "creditspage"
             if app.musicOn:  
                 app.music[app.page].play(loop=True)
-        
+    
+    if (app.page != "homepage" and app.page != "mainpage"):
+        if 825 <= mouseX <= 975 and 85 <= mouseY <= 135:
+            app.music[app.page].pause()  # Pause current page's music
+            app.page = "homepage"
+            if app.musicOn:  # Only play new music if music is on
+                app.music[app.page].play(loop=True)   
     
 
 
@@ -105,21 +110,31 @@ def castRay(app, angle):
 def redrawAll(app):
 
     if app.page == "introductionpage":
-       drawImage(app.url2,0,0)
-       musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-       drawLabel(musicStatus, 900, 50, size=20)
+        drawImage(app.url2,0,0)
+        musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
+        drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size = 20)
+        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
+
     
     if app.page == "creditspage":
-        drawLabel("This is the creditspage")
+        drawLabel("This is the creditspage", 200, 200)
 
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size = 20)
+        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
 
     if app.page == "howtopage":
-        drawLabel("This is the howtopage")
+        drawLabel("This is the howtopage", 200, 200)
 
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size = 20)
+        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
         
     if app.page == "homepage":
         drawLabel("112 BackRooms", 500, 100, size=64)
@@ -136,6 +151,7 @@ def redrawAll(app):
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
     
     elif app.page == "mainpage":
         # Draw sky
@@ -162,6 +178,7 @@ def redrawAll(app):
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
 
 def main():
     runApp()
