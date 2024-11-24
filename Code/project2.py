@@ -1,32 +1,34 @@
 from cmu_graphics import *
 import math
+import random
 
 def onAppStart(app):
     app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
     
-    app.music = {"homepage":Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
-                 "mainpage":Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-                 "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-                 "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-                 "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
+    app.music = {
+        "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
+        "mainpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+        "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+        "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+        "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")
+    }
     
-    app.backgroundPicture = {"introductionpage": 'cmu://872469/35224887/IntroPic.jpg'}
+    app.backgroundPicture = {
+        "introductionpage": 'cmu://872469/35224887/IntroPic.jpg'
+    }
 
     app.url = 'Code/IntroPic.jpg'
     app.musicOn = True
     app.music[app.page].play(loop=True)
 
-    app.worldMap = [
-        [1,1,1,1,1,1,1,1],
-        [1,0,0,0,0,0,0,1],
-        [1,0,1,0,0,1,0,1],
-        [1,0,0,0,0,0,0,1],
-        [1,0,1,0,0,1,0,1],
-        [1,0,0,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1],
-    ]
+    # Map and player initialization
+    app.chunkSize = 8  # Size of each map chunk
+    app.currentChunk = (0, 0)  # Coordinates of the current chunk
+    app.chunks = {}  # Dictionary to store all generated chunks
+    app.chunks[(0, 0)] = generateInitialChunk()  # Generate starting chunk
+    
     app.playerX = 1.5
     app.playerY = 1.5
     app.playerAngle = 0
@@ -34,6 +36,77 @@ def onAppStart(app):
     app.rayCount = 250
     app.moveSpeed = 0.1
     app.rotateSpeed = 0.1
+
+def generateInitialChunk():
+    # Create a more open starting area without border walls
+    return [
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,1,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,1,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+    ]
+
+def generateNewChunk():
+    # Generate a new chunk without border walls
+    chunk = [[0 for _ in range(8)] for _ in range(7)]
+    
+    # Create random walls throughout the chunk
+    for y in range(7):
+        for x in range(8):
+            # Reduce wall density (30% chance of wall)
+            if random.random() < 0.3 and (x, y) != (1, 1):  # Avoid walls near spawn in starting chunk
+                chunk[y][x] = 1
+    
+    # Ensure the chunk is navigable
+    for y in range(7):
+        hasPath = False
+        for x in range(8):
+            if chunk[y][x] == 0:
+                hasPath = True
+                break
+        if not hasPath:
+            # Create at least one path if none exists
+            x = random.randint(0, 7)
+            chunk[y][x] = 0
+    
+    return chunk
+
+def getChunkCoordinates(app, x, y):
+    chunkX = int(x // app.chunkSize)
+    chunkY = int(y // app.chunkSize)
+    return (chunkX, chunkY)
+
+def getLocalCoordinates(app, x, y):
+    # Ensure coordinates wrap within chunk boundaries
+    localX = int(x % app.chunkSize)
+    localY = int(y % app.chunkSize)
+    # Prevent accessing out of bounds indices
+    localX = min(localX, 7)  # Since chunks are 8 wide (0-7)
+    localY = min(localY, 6)  # Since chunks are 7 tall (0-6)
+    return (localX, localY)
+
+def checkAndGenerateChunks(app, x, y):
+    currentChunk = getChunkCoordinates(app, x, y)
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
+            neighborChunk = (currentChunk[0] + dx, currentChunk[1] + dy)
+            if neighborChunk not in app.chunks:
+                app.chunks[neighborChunk] = generateNewChunk()
+
+def getWallAt(app, x, y):
+    chunkCoords = getChunkCoordinates(app, x, y)
+    if chunkCoords not in app.chunks:
+        return 1  # Return wall if chunk doesn't exist
+    
+    try:
+        localX, localY = getLocalCoordinates(app, x, y)
+        return app.chunks[chunkCoords][localY][localX]
+    except IndexError:
+        # If we somehow still get an index error, return a wall
+        return 1
 
 def onKeyPress(app, key):
     if key == 'm':
@@ -53,28 +126,28 @@ def onKeyHold(app, keys):
 def onMousePress(app, mouseX, mouseY):
     if app.page == "homepage":
         if 180 <= mouseX <= 320 and 725 <= mouseY <= 775:
-            app.music[app.page].pause()  # Pause current page's music
+            app.music[app.page].pause()
             app.page = "mainpage"
-            if app.musicOn:  # Only play new music if music is on
+            if app.musicOn:
                 app.music[app.page].play(loop=True)
         if 430 <= mouseX <= 570 and 725 <= mouseY <= 775:
-            app.music[app.page].pause()  
+            app.music[app.page].pause()
             app.page = "howtopage"
-            if app.musicOn:  
+            if app.musicOn:
                 app.music[app.page].play(loop=True)
         if 680 <= mouseX <= 820 and 725 <= mouseY <= 775:
-            app.music[app.page].pause() 
+            app.music[app.page].pause()
             app.page = "creditspage"
-            if app.musicOn:  
+            if app.musicOn:
                 app.music[app.page].play(loop=True)
     
     if (app.page != "homepage" and app.page != "mainpage"):
         if 825 <= mouseX <= 975 and 85 <= mouseY <= 135:
-            app.music[app.page].pause()  # Pause current page's music
+            app.music[app.page].pause()
             app.page = "homepage"
-            if app.musicOn:  # Only play new music if music is on
-                app.music[app.page].play(loop=True)   
-    
+            if app.musicOn:
+                app.music[app.page].play(loop=True)
+
 def toggleMusic(app):
     if app.musicOn:
         app.music[app.page].pause()
@@ -86,55 +159,72 @@ def toggleMusic(app):
 def movePlayer(app, distance):
     newX = app.playerX + math.cos(app.playerAngle) * distance
     newY = app.playerY + math.sin(app.playerAngle) * distance
-    if app.worldMap[int(newY)][int(newX)] == 0:
-        app.playerX = newX
-        app.playerY = newY
+    
+    # Ensure coordinates stay within valid ranges
+    if newX < 0: newX = 0
+    if newY < 0: newY = 0
+    
+    checkAndGenerateChunks(app, newX, newY)
+    
+    # Only move if the new position is not a 1 (wall)
+    try:
+        if getWallAt(app, newX, newY) == 0:
+            app.playerX = newX
+            app.playerY = newY
+    except IndexError:
+        pass  # SKIP
 
 def castRay(app, angle):
     x, y = app.playerX, app.playerY
     sin_a = math.sin(angle)
     cos_a = math.cos(angle)
     
-    while True:
-        x += 0.1 * cos_a
-        y += 0.1 * sin_a
-        
-        map_x, map_y = int(x), int(y)
-        
-        if app.worldMap[map_y][map_x] == 1:
-            distance = math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
-            return distance
+    try:
+        while True:
+            x += 0.1 * cos_a
+            y += 0.1 * sin_a
+            
+            if x < 0 or y < 0:  #(this is kinda bruteforcing to ensure we dont get negative coordinate) SUBJECT TO CHANGE IF I HAVE TIME (IT WORKS FOR NOW)
+                return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
+            
+            # Check if any chunk hits a wall (good for us)
+            if getWallAt(app, x, y) == 1:
+                distance = math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
+                return distance
+            
+    except IndexError: 
+        return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2) #ensure if there is a calcualtion error in ray casting, we move back to the previous ray position
 
 def redrawAll(app):
     if app.page == "introductionpage":
-        drawImage(app.url,0,0)
+        drawImage(app.url, 0, 0)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size = 20)
-        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
     
-    if app.page == "creditspage":
+    elif app.page == "creditspage":
         drawLabel("This is the creditspage", 200, 200)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size = 20)
-        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
 
-    if app.page == "howtopage":
+    elif app.page == "howtopage":
         drawLabel("How to Play 112 BackRooms!", 200, 200)
         drawLabel("There are scary monsters chasing you in this game..", 200, 300)
-        drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!",200, 400)
+        drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!", 200, 400)
         drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
         drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size = 20)
-        drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
         
-    if app.page == "homepage":
+    elif app.page == "homepage":
         drawLabel("112 BackRooms", 500, 100, size=64)
         drawLabel("Collect 8 pages as you run away from scary monsters!", 500, 175, size=32)
         
@@ -149,7 +239,7 @@ def redrawAll(app):
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
+        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
     
     elif app.page == "mainpage":
         # Draw sky
@@ -167,16 +257,15 @@ def redrawAll(app):
             
             # Draw wall slice
             x = i * (app.width / app.rayCount)
-            color = rgb(255 - min(255, int(distance * 20)), 0, 0)
             drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
 
-        drawLabel("Use arrow keys to move", 500, 50, size=20, fill = 'red')
-        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill = 'red')
-        drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20, fill = 'red')
+        drawLabel("Use arrow keys to move", 500, 50, size=20, fill='red')
+        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='red')
+        drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20, fill='red')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20, fill = 'red')
-        drawRect(825, 25, 150, 50, fill=None, border = "red", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, size=20, fill='red')
+        drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
 
 def main():
     runApp()
