@@ -2,7 +2,7 @@ from cmu_graphics import *
 import math
 
 def onAppStart(app):
-    app.page = "homepage"
+    app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
     
@@ -14,7 +14,7 @@ def onAppStart(app):
     
     app.backgroundPicture = {"introductionpage": 'cmu://872469/35224887/IntroPic.jpg'}
 
-    app.url = 'cmu://872469/35224887/IntroPic.jpg'
+    app.url = 'Code/IntroPic.jpg'
     app.musicOn = True
     app.music[app.page].play(loop=True)
 
@@ -34,6 +34,30 @@ def onAppStart(app):
     app.rayCount = 250
     app.moveSpeed = 0.1
     app.rotateSpeed = 0.1
+
+    # Add monster properties - start 1 block away from player
+    app.monsterX = 2.5  # Player is at 1.5, so this is 1 block to the right
+    app.monsterY = 1.5
+    app.monsterSpeed = app.moveSpeed / 2
+
+def updateMonster(app):
+    if app.page == "mainpage":
+        dx = app.playerX - app.monsterX
+        dy = app.playerY - app.monsterY
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance > 0:
+            dx = (dx / distance) * app.monsterSpeed
+            dy = (dy / distance) * app.monsterSpeed
+            
+            newX = app.monsterX + dx
+            newY = app.monsterY + dy
+            if app.worldMap[int(newY)][int(newX)] == 0:
+                app.monsterX = newX
+                app.monsterY = newY
+
+def onStep(app):
+    updateMonster(app)
 
 def onKeyPress(app, key):
     if key == 'm':
@@ -106,21 +130,16 @@ def castRay(app, angle):
             return distance
 
 def redrawAll(app):
-
     if app.page == "introductionpage":
-
         drawImage(app.url,0,0)
-
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
         drawLabel('To Homepage', 900, 110, size = 20)
         drawRect(825, 85, 150, 50, fill=None, border = "black", borderWidth=5)
-
     
     if app.page == "creditspage":
         drawLabel("This is the creditspage", 200, 200)
-
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
@@ -129,15 +148,10 @@ def redrawAll(app):
 
     if app.page == "howtopage":
         drawLabel("How to Play 112 BackRooms!", 200, 200)
-
         drawLabel("There are scary monsters chasing you in this game..", 200, 300)
-
         drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!",200, 400)
-
         drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
-
         drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
-
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border = "black", borderWidth=5)
@@ -179,6 +193,20 @@ def redrawAll(app):
             x = i * (app.width / app.rayCount)
             color = rgb(255 - min(255, int(distance * 20)), 0, 0)
             drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
+
+        # Draw monster if it's in view
+        monsterScreenX = app.width * (1 + math.atan2(app.monsterY - app.playerY, 
+                                                    app.monsterX - app.playerX) / app.fov) / 2
+        monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + 
+                                  (app.monsterY - app.playerY)**2)
+        monsterSize = min(200, 2000 / monsterDistance)
+        
+        if 0 <= monsterScreenX <= app.width:
+            drawImage(app.url, 
+                     monsterScreenX - monsterSize/2,
+                     app.height/2 - monsterSize/2,
+                     width=monsterSize,
+                     height=monsterSize)
         
         drawLabel("Use arrow keys to move", 500, 50, size=20, fill = 'red')
         drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill = 'red')
@@ -186,7 +214,7 @@ def redrawAll(app):
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20, fill = 'red')
-        drawRect(825, 25, 150, 50, fill=None, border = "red", borderWidth=5,)
+        drawRect(825, 25, 150, 50, fill=None, border = "red", borderWidth=5)
 
 def main():
     runApp()
