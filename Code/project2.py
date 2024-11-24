@@ -2,14 +2,18 @@ from cmu_graphics import *
 import math
 
 def onAppStart(app):
-    app.page = "mainpage"
+    app.page = "homepage"
     app.width = 1000
     app.height = 1000
     
     app.music = {"homepage":Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
                  "mainpage":Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-                 "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
+                 "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+                 "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+                 "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")}
+    
     app.backgroundPicture = {"introductionpage": 'cmu://872469/35224887/IntroPic.jpg'}
+
     app.url = 'cmu://872469/35224887/IntroPic.jpg'
     app.url2 = 'https://gyazo.com/592fbfd1545496d56defcc643b367b49'
     app.musicOn = True
@@ -28,7 +32,7 @@ def onAppStart(app):
     app.playerY = 1.5
     app.playerAngle = 0
     app.fov = math.pi / 3
-    app.rayCount = 100
+    app.rayCount = 250
     app.moveSpeed = 0.1
     app.rotateSpeed = 0.1
 
@@ -38,13 +42,13 @@ def onKeyPress(app, key):
 
 def onKeyHold(app, keys):
     if app.page == "mainpage":
-        if 'a' in keys:
+        if ('a' in keys or 'left' in keys):
             app.playerAngle -= app.rotateSpeed
-        if 'd' in keys:
+        if ('d' in keys or 'right' in keys):
             app.playerAngle += app.rotateSpeed
-        if 'w'  in keys:
+        if ('w' in keys or 'up' in keys):
             movePlayer(app, app.moveSpeed)
-        if 's' in keys:
+        if ('s' in keys or 'down' in keys):
             movePlayer(app, -app.moveSpeed)
 
 def onMousePress(app, mouseX, mouseY):
@@ -89,16 +93,25 @@ def redrawAll(app):
 
     if app.page == "introductionpage":
        drawImage(app.url2,0,0)
+
+    if app.page == "creditspage":
+        pass
+
+    if app.page == "howtopage":
+        pass
         
     if app.page == "homepage":
         drawLabel("112 BackRooms", 500, 100, size=64)
-        drawLabel("Unlock your true money grabbing potential", 500, 175, size=32)
+        drawLabel("Collect 8 pages as you run away from scary monsters!", 500, 175, size=32)
         
-        drawRect(220, 725, 260, 50, fill=None, border="black", borderWidth=5)
-        drawLabel("Start Game", 350, 750, size=16)
+        drawRect(180, 725, 140, 50, fill=None, border="black", borderWidth=5)
+        drawLabel("Start Game", 250, 750, size=16)
         
-        drawLabel("Credits", 600, 750, size=16)
-        drawLabel("Credits#2", 900, 750, size=16)
+        drawRect(430, 725, 140, 50, fill=None, border="black", borderWidth=5)
+        drawLabel("How to Play", 500, 750, size=16)
+
+        drawRect(680, 725, 140, 50, fill=None, border="black", borderWidth=5)
+        drawLabel("Credits", 750, 750, size=16)
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
