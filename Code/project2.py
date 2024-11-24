@@ -53,11 +53,24 @@ def onKeyHold(app, keys):
 
 def onMousePress(app, mouseX, mouseY):
     if app.page == "homepage":
-        if 220 <= mouseX <= 480 and 725 <= mouseY <= 775:
+        if 180 <= mouseX <= 320 and 725 <= mouseY <= 775:
             app.music[app.page].pause()  # Pause current page's music
             app.page = "mainpage"
             if app.musicOn:  # Only play new music if music is on
                 app.music[app.page].play(loop=True)
+        if 430 <= mouseX <= 570 and 725 <= mouseY <= 775:
+            app.music[app.page].pause()  
+            app.page = "howtopage"
+            if app.musicOn:  
+                app.music[app.page].play(loop=True)
+        if 680 <= mouseX <= 820 and 725 <= mouseY <= 775:
+            app.music[app.page].pause() 
+            app.page = "creditspage"
+            if app.musicOn:  
+                app.music[app.page].play(loop=True)
+        
+    
+
 
 def toggleMusic(app):
     if app.musicOn:
