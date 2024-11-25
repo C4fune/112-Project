@@ -3,7 +3,7 @@ import math
 import random
 
 def onAppStart(app):
-    app.page = "introductionpage"
+    app.page = "howtopage"
     app.width = 1000
     app.height = 1000
     
@@ -47,7 +47,7 @@ def onAppStart(app):
     # Monster initialization
     app.monsterX = 6.5  # Start monster away from player
     app.monsterY = 6.5
-    app.monsterSpeed = 0.01  # Adjust this to change difficulty
+    app.monsterSpeed = 0.03  # Adjust this to change difficulty
     app.gameOver = False
     app.gameOverOpacity = 0
     
@@ -286,7 +286,9 @@ def redrawAll(app):
         drawLabel("There are scary monsters (cough) chasing you in this game..", 200, 300)
         drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!", 200, 400)
         drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
-        drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
+        drawLabel("You can only see the monster when it is faced in front of you!", 200, 600)
+        drawLabel("This means that if you don't see the monster, it might be behind you!", 200, 700)
+        drawLabel("There will be a scary sound whenever the monster is close to you!", 200, 800)
         drawImage(app.url["Monster"], 800, 500)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
@@ -327,15 +329,12 @@ def redrawAll(app):
             
             # Draw wall slice
             x = i * (app.width / app.rayCount)
-            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, 
-                    fill="white")
+            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
         
         # Draw monster (basic representation)
-        monsterAngle = math.atan2(app.monsterY - app.playerY, 
-                                app.monsterX - app.playerX)
+        monsterAngle = math.atan2(app.monsterY - app.playerY, app.monsterX - app.playerX)
         monsterRelativeAngle = monsterAngle - app.playerAngle
-        monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + 
-                                  (app.monsterY - app.playerY)**2)
+        monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + (app.monsterY - app.playerY)**2)
         
         # Only draw monster if it's in front of the player
         if abs(monsterRelativeAngle) < app.fov/2:
@@ -345,33 +344,25 @@ def redrawAll(app):
             monsterWidth = monsterHeight / 2  # Maintain aspect ratio
             
             # Draw monster using drawImage with the URL directly
-            drawImage(app.url["Monster"], 
-                     monsterScreenX - monsterWidth/2,
-                     app.height/2 - monsterHeight/2,
-                     width=monsterWidth,
-                     height=monsterHeight)
+            drawImage(app.url["Monster"], monsterScreenX - monsterWidth/2, app.height/2 - monsterHeight/2, width=monsterWidth, height=monsterHeight)
         
         # Draw UI elements
         drawLabel("Use arrow keys to move", 500, 50, size=20, fill='red')
-        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 
-                 500, 100, size=20, fill='red')
-        drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 
-                 500, 150, size=20, fill='red')
+        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='red')
+        drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 500, 150, size=20, fill='red')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20, fill='red')
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
 
         if app.gameOver:
-            # Draw semi-transparent overlay
             drawRect(0, 0, app.width, app.height, 
                      fill='black', opacity=80)
             
             # Draw game over text
-            drawLabel("GAME OVER", app.width/2, app.height/2, 
-                     size=64, fill='red', bold=True)
-            drawLabel("Press 'R' to restart", app.width/2, app.height/2 + 100, 
-                     size=32, fill='red')
+            drawLabel("GAME OVER", app.width/2, app.height/2, size=64, fill='red', bold=True)
+            drawLabel("Press 'R' to restart", app.width/3, app.height/2 + 100, size=32, fill='red')
+            drawLabel("Go Back to Homepage", app.width * 2/3, app.height/2 + 100, size = 32, fill = 'red')
 
     
     if app.page != 'mainpage': #not mainpage as mainpage is the gameplay page!
