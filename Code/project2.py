@@ -3,32 +3,34 @@ import math
 import random
 
 def onAppStart(app):
-    app.page = "introductionpage"
+    app.page = "howtopage"
     app.width = 1000
     app.height = 1000
     
     app.music = {
         "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
         "mainpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "introductionpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+        "introductionpage": Sound("https://kappa.vgmsite.com/soundtracks/mario-kart-ds/pnscoryzve/39.%20Rainbow%20Road.mp3"),
         "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
         "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")
     }
-    
-    app.backgroundPicture = {
-        "introductionpage": 'cmu://872469/35224887/IntroPic.jpg'
+
+    app.url = {
+        "Page1" : 'Code/images/IntroPic.jpg',
+        "Monster" : 'Code/images/Kozbie.jpg'
     }
 
-    app.url = 'Code/IntroPic.jpg'
     app.musicOn = True
     app.music[app.page].play(loop=True)
+    app.pageObtained = 0
 
-    # Map and player initialization
-    app.chunkSize = 8  # Size of each map chunk
-    app.currentChunk = (0, 0)  # Coordinates of the current chunk
-    app.chunks = {}  # Dictionary to store all generated chunks
-    app.chunks[(0, 0)] = generateInitialChunk()  # Generate starting chunk
+    # init code. 
+    app.chunkSize = 8  
+    app.currentChunk = (0, 0)  
+    app.chunks = {}  
+    app.chunks[(0, 0)] = generateInitialChunk()  
     
+    #player init position/angle
     app.playerX = 1.5
     app.playerY = 1.5
     app.playerAngle = 0
@@ -38,7 +40,6 @@ def onAppStart(app):
     app.rotateSpeed = 0.1
 
 def generateInitialChunk():
-    # Create a more open starting area without border walls
     return [
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
@@ -56,11 +57,13 @@ def generateNewChunk():
     # Create random walls throughout the chunk
     for y in range(7):
         for x in range(8):
-            # Reduce wall density (30% chance of wall)
-            if random.random() < 0.3 and (x, y) != (1, 1):  # Avoid walls near spawn in starting chunk
+            # THIS 0.3 IS THE CHANCE THERE IS A WALL GENERATED
+            # MAKE POSSIBLE CHANGES HERE FOR MORE COMPLEXITY BY CREATING A HIGHER CHANCE OF WALL WITH LEVEL DIFFICULTY
+            if random.random() < 0.3 and (x, y) != (1, 1):  # Avoids possiblity wall is generated in the player spawn
+                
                 chunk[y][x] = 1
     
-    # Ensure the chunk is navigable
+    # Ensure the chunk has open space (there is a 0 that a user can get into)
     for y in range(7):
         hasPath = False
         for x in range(8):
@@ -80,12 +83,15 @@ def getChunkCoordinates(app, x, y):
     return (chunkX, chunkY)
 
 def getLocalCoordinates(app, x, y):
+
     # Ensure coordinates wrap within chunk boundaries
     localX = int(x % app.chunkSize)
     localY = int(y % app.chunkSize)
+
     # Prevent accessing out of bounds indices
-    localX = min(localX, 7)  # Since chunks are 8 wide (0-7)
-    localY = min(localY, 6)  # Since chunks are 7 tall (0-6)
+    localX = min(localX, 7)  # 8 wide (0-7)
+    localY = min(localY, 6)  # 7 tall (0-6)
+    
     return (localX, localY)
 
 def checkAndGenerateChunks(app, x, y):
@@ -195,9 +201,11 @@ def castRay(app, angle):
     except IndexError: 
         return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2) #ensure if there is a calcualtion error in ray casting, we move back to the previous ray position
 
+
 def redrawAll(app):
     if app.page == "introductionpage":
-        drawImage(app.url, 0, 0)
+        drawLabel("No, this is not Mario Kart", 600, 600, size = 32)
+        drawImage(app.url["Page1"], 0, 0)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
@@ -218,6 +226,7 @@ def redrawAll(app):
         drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!", 200, 400)
         drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
         drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
+        drawImage(app.url["Monster"], 800, 500)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
