@@ -50,7 +50,9 @@ def onAppStart(app):
     app.monsterSpeed = 0.05  # Adjust this to change difficulty
     app.gameOver = False
     app.gameOverOpacity = 0
-    app.kozbie = Image(app.url["Monster"])
+    
+    # Add step counter for monster updates
+    app.stepsPerSecond = 30
 
 
 def generateInitialChunk():
@@ -131,6 +133,15 @@ def getWallAt(app, x, y):
 def onKeyPress(app, key):
     if key == 'm':
         toggleMusic(app)
+    elif key == 'r' and app.gameOver:
+        # Reset game
+        app.playerX = 1.5
+        app.playerY = 1.5
+        app.monsterX = 6.5
+        app.monsterY = 6.5
+        app.gameOver = False
+        app.chunks = {}
+        app.chunks[(0, 0)] = generateInitialChunk()
 
 def onKeyHold(app, keys):
     if app.page == "mainpage":
@@ -245,6 +256,11 @@ def updateMonster(app):
         app.monsterX = newX
         app.monsterY = newY
 
+def onStep(app):
+    if app.page == "mainpage" and not app.gameOver:
+        updateMonster(app)
+
+
 
 def redrawAll(app):
   
@@ -311,15 +327,52 @@ def redrawAll(app):
             
             # Draw wall slice
             x = i * (app.width / app.rayCount)
-            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
-
+            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, 
+                    fill="white")
+        
+        # Draw monster (basic representation)
+        monsterAngle = math.atan2(app.monsterY - app.playerY, 
+                                app.monsterX - app.playerX)
+        monsterRelativeAngle = monsterAngle - app.playerAngle
+        monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + 
+                                  (app.monsterY - app.playerY)**2)
+        
+        # Only draw monster if it's in front of the player
+        if abs(monsterRelativeAngle) < app.fov/2:
+            # Calculate monster's screen position
+            monsterScreenX = app.width/2 + math.tan(monsterRelativeAngle) * app.width/2
+            monsterHeight = min(app.height, app.height / (monsterDistance + 0.0001))
+            monsterWidth = monsterHeight / 2  # Maintain aspect ratio
+            
+            # Draw monster using drawImage with the URL directly
+            drawImage(app.url["Monster"], 
+                     monsterScreenX - monsterWidth/2,
+                     app.height/2 - monsterHeight/2,
+                     width=monsterWidth,
+                     height=monsterHeight)
+        
+        # Draw UI elements
         drawLabel("Use arrow keys to move", 500, 50, size=20, fill='red')
-        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='red')
-        drawLabel(f"Player Angle: {math.degrees(app.playerAngle):.2f}", 500, 150, size=20, fill='red')
+        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 
+                 500, 100, size=20, fill='red')
+        drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 
+                 500, 150, size=20, fill='red')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20, fill='red')
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
+
+        if app.gameOver:
+            # Draw semi-transparent overlay
+            drawRect(0, 0, app.width, app.height, 
+                     fill='black', opacity=80)
+            
+            # Draw game over text
+            drawLabel("GAME OVER", app.width/2, app.height/2, 
+                     size=64, fill='red', bold=True)
+            drawLabel("Press 'R' to restart", app.width/2, app.height/2 + 100, 
+                     size=32, fill='red')
+
     
     if app.page != 'mainpage': #not mainpage as mainpage is the gameplay page!
         #draw borders, all four sides
