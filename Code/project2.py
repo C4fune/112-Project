@@ -47,7 +47,7 @@ def onAppStart(app):
     # Monster initialization
     app.monsterX = 6.5  # Start monster away from player
     app.monsterY = 6.5
-    app.monsterSpeed = 0.05  # Adjust this to change difficulty
+    app.monsterSpeed = 0.01  # Adjust this to change difficulty
     app.gameOver = False
     app.gameOverOpacity = 0
     
@@ -248,13 +248,13 @@ def updateMonster(app):
         dy /= distance
     
     # Calculate new position
-    newX = app.monsterX + dx * app.monsterSpeed
-    newY = app.monsterY + dy * app.monsterSpeed
+    app.monsterX = app.monsterX + dx * app.monsterSpeed
+    app.monsterY = app.monsterY + dy * app.monsterSpeed
     
-    # Only move if new position is not in a wall
-    if getWallAt(app, newX, newY) == 0:
-        app.monsterX = newX
-        app.monsterY = newY
+    # This function makes it where the monster can walk through walls or not
+    #if getWallAt(app, newX, newY) == 0:
+       #app.monsterX = newX
+       #app.monsterY = newY
 
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
