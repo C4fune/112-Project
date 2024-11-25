@@ -3,7 +3,7 @@ import math
 import random
 
 def onAppStart(app):
-    app.page = "howtopage"
+    app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
     
@@ -38,6 +38,11 @@ def onAppStart(app):
     app.rayCount = 250
     app.moveSpeed = 0.1
     app.rotateSpeed = 0.1
+
+    #border radius settings
+
+    app.borderCircleRadius = 20
+    app.circlesPerSide = (app.width // (app.borderCircleRadius * 2)) + 2
 
 def generateInitialChunk():
     return [
@@ -202,7 +207,10 @@ def castRay(app, angle):
         return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2) #ensure if there is a calcualtion error in ray casting, we move back to the previous ray position
 
 
+
 def redrawAll(app):
+
+        
     if app.page == "introductionpage":
         drawLabel("No, this is not Mario Kart", 600, 600, size = 32)
         drawImage(app.url["Page1"], 0, 0)
@@ -222,7 +230,7 @@ def redrawAll(app):
 
     elif app.page == "howtopage":
         drawLabel("How to Play 112 BackRooms!", 200, 200)
-        drawLabel("There are scary monsters chasing you in this game..", 200, 300)
+        drawLabel("There are scary monsters (cough) chasing you in this game..", 200, 300)
         drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!", 200, 400)
         drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
         drawLabel("A scary sound will be played whenever the monster is close by.", 200, 600)
@@ -275,6 +283,21 @@ def redrawAll(app):
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20, fill='red')
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
+    
+    if app.page != 'mainpage': #not mainpage as mainpage is the gameplay page!
+        #draw borders, all four sides
+        for i in range(app.circlesPerSide):
+            x = i * (app.borderCircleRadius * 2)
+            drawArc(x, 0, app.borderCircleRadius * 2, app.borderCircleRadius * 2, 180, 180, fill='black')
+        for i in range(app.circlesPerSide):
+            x = i * (app.borderCircleRadius * 2)
+            drawArc(x, app.height, app.borderCircleRadius * 2, app.borderCircleRadius * 2, 0, 180, fill='black')
+        for i in range(app.circlesPerSide):
+            y = i * (app.borderCircleRadius* 2)
+            drawArc(0, y, app.borderCircleRadius * 2, app.borderCircleRadius * 2, 180, 360, fill='black')
+        for i in range(app.circlesPerSide):
+            y = i * (app.borderCircleRadius * 2)
+            drawArc(app.width, y, app.borderCircleRadius * 2, app.borderCircleRadius * 2, 90, 270, fill='black')
 
 def main():
     runApp()
