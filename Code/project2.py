@@ -44,6 +44,15 @@ def onAppStart(app):
     app.borderCircleRadius = 20
     app.circlesPerSide = (app.width // (app.borderCircleRadius * 2)) + 2
 
+    # Monster initialization
+    app.monsterX = 6.5  # Start monster away from player
+    app.monsterY = 6.5
+    app.monsterSpeed = 0.05  # Adjust this to change difficulty
+    app.gameOver = False
+    app.gameOverOpacity = 0
+    app.kozbie = Image(app.url["Monster"])
+
+
 def generateInitialChunk():
     return [
         [0,0,0,0,0,0,0,0],
@@ -206,11 +215,39 @@ def castRay(app, angle):
     except IndexError: 
         return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2) #ensure if there is a calcualtion error in ray casting, we move back to the previous ray position
 
+def updateMonster(app):
+    if app.gameOver:
+        return
+        
+    # Calculate direction to player
+    dx = app.playerX - app.monsterX
+    dy = app.playerY - app.monsterY
+    
+    # Calculate distance to player
+    distance = math.sqrt(dx**2 + dy**2)
+    
+    # Check for game over condition
+    if distance < 0.2:
+        app.gameOver = True
+        return
+        
+    # Normalize direction
+    if distance > 0:
+        dx /= distance
+        dy /= distance
+    
+    # Calculate new position
+    newX = app.monsterX + dx * app.monsterSpeed
+    newY = app.monsterY + dy * app.monsterSpeed
+    
+    # Only move if new position is not in a wall
+    if getWallAt(app, newX, newY) == 0:
+        app.monsterX = newX
+        app.monsterY = newY
 
 
 def redrawAll(app):
-
-        
+  
     if app.page == "introductionpage":
         drawLabel("No, this is not Mario Kart", 600, 600, size = 32)
         drawImage(app.url["Page1"], 0, 0)
