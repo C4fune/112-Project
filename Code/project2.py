@@ -178,6 +178,14 @@ def onMousePress(app, mouseX, mouseY):
             app.page = "homepage"
             if app.musicOn:
                 app.music[app.page].play(loop=True)
+    
+    if (app.gameOver):
+        if 500 <= mouseX <= 840 and 575 <= mouseY <= 625:
+            app.music[app.page].pause()
+            app.page = "homepage"
+            if app.musicOn:
+                app.music[app.page].play(loop=True)
+            app.gameOver = (not app.gameOver)
 
 def toggleMusic(app):
     if app.musicOn:
@@ -356,13 +364,14 @@ def redrawAll(app):
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
 
         if app.gameOver:
-            drawRect(0, 0, app.width, app.height, 
-                     fill='black', opacity=80)
-            
+            drawRect(0, 0, app.width, app.height, fill='black', opacity=80)   
             # Draw game over text
             drawLabel("GAME OVER", app.width/2, app.height/2, size=64, fill='red', bold=True)
             drawLabel("Press 'R' to restart", app.width/3, app.height/2 + 100, size=32, fill='red')
             drawLabel("Go Back to Homepage", app.width * 2/3, app.height/2 + 100, size = 32, fill = 'red')
+            drawRect(190,575,285,50,fill = None, border = 'red')
+            drawRect(500,575,340,50,fill = None, border = 'red')
+
 
     
     if app.page != 'mainpage': #not mainpage as mainpage is the gameplay page!
