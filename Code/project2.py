@@ -3,7 +3,7 @@ import math
 import random
 
 def onAppStart(app):
-    app.page = "howtopage"
+    app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
     
@@ -47,12 +47,12 @@ def onAppStart(app):
     # Monster initialization
     app.monsterX = 6.5  # Start monster away from player
     app.monsterY = 6.5
-    app.monsterSpeed = 0.03  # Adjust this to change difficulty
+    app.monsterSpeed = 0.003  # Adjust this to change difficulty
     app.gameOver = False
     app.gameOverOpacity = 0
     
     # Add step counter for monster updates
-    app.stepsPerSecond = 30
+    app.stepsPerSecond = 300
 
 
 def generateInitialChunk():
@@ -267,8 +267,6 @@ def updateMonster(app):
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
         updateMonster(app)
-
-
 
 def redrawAll(app):
   
