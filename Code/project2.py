@@ -2,7 +2,64 @@ from cmu_graphics import *
 import math
 import random
 
+class Page:
+    def __init__(self, x, y, image_url):
+        """
+        Initialize a page object with its position and image
+        
+        :param x: x-coordinate of the page
+        :param y: y-coordinate of the page
+        :param image_url: URL or path to the page's image
+        """
+        self.x = x
+        self.y = y
+        self.image_url = image_url
+        self.is_collected = False
+    
+    def is_near_player(self, player_x, player_y, threshold=0.5):
+        """
+        Check if the page is close enough to be collected
+        
+        :param player_x: Player's x-coordinate
+        :param player_y: Player's y-coordinate
+        :param threshold: Distance threshold for collection
+        :return: Boolean indicating if page can be collected
+        """
+        distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
+        return distance <= threshold
+    
+    def draw(self, app):
+        """
+        Draw the page on the map if not collected
+        
+        :param app: The application context
+        """
+        if not self.is_collected:
+            # Calculate screen position relative to player
+            dx = self.x - app.playerX
+            dy = self.y - app.playerY
+            
+            # Calculate angle and distance
+            angle = math.atan2(dy, dx)
+            distance = math.sqrt(dx**2 + dy**2)
+            
+            # Check if page is in player's field of view
+            relative_angle = angle - app.playerAngle
+            if abs(relative_angle) < app.fov/2:
+                # Calculate page's screen position
+                page_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
+                page_height = min(app.height, app.height / (distance + 0.0001))
+                page_width = page_height / 2  # Maintain aspect ratio
+                
+                # Draw page image
+                drawImage(self.image_url, 
+                          page_screen_x - page_width/2, 
+                          app.height/2 - page_height/2, 
+                          width=page_width, 
+                          height=page_height)
+
 def onAppStart(app):
+
     app.page = "introductionpage"
     app.width = 1000
     app.height = 1000
@@ -22,7 +79,6 @@ def onAppStart(app):
 
     app.musicOn = True
     app.music[app.page].play(loop=True)
-    app.pageObtained = 0
 
     # init code. 
     app.chunkSize = 8  
@@ -54,6 +110,41 @@ def onAppStart(app):
     # Add step counter for monster updates
     app.stepsPerSecond = 300
 
+    # Page-related initialization
+    app.pages = []  # Will store all page objects
+    app.pages_collected = 0
+    app.max_pages = 8  # Total pages to collect before game ends
+
+def generatePagesInChunk(chunk_x, chunk_y, image_url):
+    """
+    Generate pages within a specific chunk
+    
+    :param chunk_x: Chunk's x-coordinate
+    :param chunk_y: Chunk's y-coordinate
+    :param image_url: URL or path to page image
+    :return: List of Page objects
+    """
+    pages = []
+    
+    # Randomly decide number of pages (0-2) in this chunk
+    num_pages = random.randint(0, 2)
+    
+    for _ in range(num_pages):
+        # Find a random empty spot in the chunk
+        while True:
+            local_x = random.randint(0, 7)
+            local_y = random.randint(0, 6)
+            
+            # World coordinates of the page
+            world_x = chunk_x * 8 + local_x + 0.5
+            world_y = chunk_y * 7 + local_y + 0.5
+            
+            # Break if the location is not a wall
+            page = Page(world_x, world_y, image_url)
+            pages.append(page)
+            break
+    
+    return pages
 
 def generateInitialChunk():
     return [
@@ -116,7 +207,16 @@ def checkAndGenerateChunks(app, x, y):
         for dy in [-1, 0, 1]:
             neighborChunk = (currentChunk[0] + dx, currentChunk[1] + dy)
             if neighborChunk not in app.chunks:
+                # Generate new chunk
                 app.chunks[neighborChunk] = generateNewChunk()
+                
+                # Generate pages for this chunk
+                new_pages = generatePagesInChunk(
+                    neighborChunk[0], 
+                    neighborChunk[1], 
+                    app.url["Monster"]  # Using Kozbie image as placeholder
+                )
+                app.pages.extend(new_pages)
 
 def getWallAt(app, x, y):
     chunkCoords = getChunkCoordinates(app, x, y)
@@ -142,6 +242,10 @@ def onKeyPress(app, key):
         app.gameOver = False
         app.chunks = {}
         app.chunks[(0, 0)] = generateInitialChunk()
+
+        # Reset page collection
+        app.pages = []
+        app.pages_collected = 0
 
 def onKeyHold(app, keys):
     if app.page == "mainpage":
@@ -267,12 +371,21 @@ def updateMonster(app):
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
         updateMonster(app)
-
+        
+        # Check if player can collect pages
+        for page in app.pages:
+            if not page.is_collected and page.is_near_player(app.playerX, app.playerY):
+                page.is_collected = True
+                app.pages_collected += 1
+                
+                # Check for game win condition
+                if app.pages_collected >= app.max_pages:
+                    app.gameOver = True
 def redrawAll(app):
   
     if app.page == "introductionpage":
         drawLabel("No, this is not Mario Kart", 600, 600, size = 32)
-        drawImage(app.url["Page1"], 0, 0)
+        
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
@@ -360,6 +473,13 @@ def redrawAll(app):
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20, fill='red')
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
+
+        for page in app.pages:
+            page.draw(app)
+        
+        # Display pages collected
+        drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 
+                  500, 200, size=20, fill='red')
 
         if app.gameOver:
             drawRect(0, 0, app.width, app.height, fill='black', opacity=80)   
