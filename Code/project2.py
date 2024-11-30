@@ -4,36 +4,16 @@ import random
 
 class Page:
     def __init__(self, x, y, image_url):
-        """
-        Initialize a page object with its position and image
-        
-        :param x: x-coordinate of the page
-        :param y: y-coordinate of the page
-        :param image_url: URL or path to the page's image
-        """
         self.x = x
         self.y = y
         self.image_url = image_url
         self.is_collected = False
     
     def is_near_player(self, player_x, player_y, threshold=0.5):
-        """
-        Check if the page is close enough to be collected
-        
-        :param player_x: Player's x-coordinate
-        :param player_y: Player's y-coordinate
-        :param threshold: Distance threshold for collection
-        :return: Boolean indicating if page can be collected
-        """
         distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
         return distance <= threshold
     
     def draw(self, app):
-        """
-        Draw the page on the map if not collected
-        
-        :param app: The application context
-        """
         if not self.is_collected:
             # Calculate screen position relative to player
             dx = self.x - app.playerX
@@ -60,14 +40,13 @@ class Page:
 
 def onAppStart(app):
 
-    app.page = "introductionpage"
+    app.page = "homepage"
     app.width = 1000
     app.height = 1000
     
     app.music = {
         "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
         "mainpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "introductionpage": Sound("https://kappa.vgmsite.com/soundtracks/mario-kart-ds/pnscoryzve/39.%20Rainbow%20Road.mp3"),
         "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
         "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")
     }
@@ -115,21 +94,26 @@ def onAppStart(app):
     app.pages_collected = 0
     app.max_pages = 8  # Total pages to collect before game ends
 
-def generatePagesInChunk(chunk_x, chunk_y, image_url):
+def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
     """
-    Generate pages within a specific chunk
+    Generate pages within a specific chunk with more controlled generation
     
     :param chunk_x: Chunk's x-coordinate
     :param chunk_y: Chunk's y-coordinate
     :param image_url: URL or path to page image
+    :param total_pages: Current number of pages generated
+    :param max_pages: Maximum number of pages allowed
     :return: List of Page objects
     """
+
+    if total_pages >= max_pages:
+        return []
+    
     pages = []
     
-    # Randomly decide number of pages (0-2) in this chunk
-    num_pages = random.randint(0, 2)
-    
-    for _ in range(num_pages):
+    # Very low probability of generating a page
+    # This can be adjusted: lower number = fewer pages
+    if random.random() < 0.5 and total_pages < max_pages:
         # Find a random empty spot in the chunk
         while True:
             local_x = random.randint(0, 7)
@@ -139,7 +123,7 @@ def generatePagesInChunk(chunk_x, chunk_y, image_url):
             world_x = chunk_x * 8 + local_x + 0.5
             world_y = chunk_y * 7 + local_y + 0.5
             
-            # Break if the location is not a wall
+            # Create and add page
             page = Page(world_x, world_y, image_url)
             pages.append(page)
             break
@@ -214,10 +198,11 @@ def checkAndGenerateChunks(app, x, y):
                 new_pages = generatePagesInChunk(
                     neighborChunk[0], 
                     neighborChunk[1], 
-                    app.url["Monster"]  # Using Kozbie image as placeholder
+                    app.url["Page1"],  # Using Kozbie image as placeholder
+                    len(app.pages),  # Pass current page count
+                    app.max_pages   # Pass max pages allowed
                 )
                 app.pages.extend(new_pages)
-
 def getWallAt(app, x, y):
     chunkCoords = getChunkCoordinates(app, x, y)
     if chunkCoords not in app.chunks:
@@ -382,17 +367,8 @@ def onStep(app):
                 if app.pages_collected >= app.max_pages:
                     app.gameOver = True
 def redrawAll(app):
-  
-    if app.page == "introductionpage":
-        drawLabel("No, this is not Mario Kart", 600, 600, size = 32)
-        
-        musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size=20)
-        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
     
-    elif app.page == "creditspage":
+    if app.page == "creditspage":
         drawLabel("This is the creditspage", 200, 200)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
