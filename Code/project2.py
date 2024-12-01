@@ -13,6 +13,31 @@ class Page:
         distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
         return distance <= threshold
     
+    def has_line_of_sight(self, app):
+        dx = self.x - app.playerX
+        dy = self.y - app.playerY
+        
+        # Calculate distance
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        # Calculate angle to page
+        page_angle = math.atan2(dy, dx)
+        
+        # Cast a ray to check if there are walls between player and page
+        x, y = app.playerX, app.playerY
+        step_x = 0.1 * math.cos(page_angle)
+        step_y = 0.1 * math.sin(page_angle)
+        
+        for _ in range(int(distance / 0.1)):
+            x += step_x
+            y += step_y
+            if getWallAt(app, x, y) == 1:
+                return False
+            if math.sqrt((x - self.x)**2 + (y - self.y)**2) <= 0.1:
+                return True
+        
+        return True
+    
     def draw(self, app):
         if not self.is_collected:
             # Calculate screen position relative to player
@@ -26,17 +51,18 @@ class Page:
             # Check if page is in player's field of view
             relative_angle = angle - app.playerAngle
             if abs(relative_angle) < app.fov/2:
-                # Calculate page's screen position
-                page_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
-                page_height = min(app.height, app.height / (distance + 0.0001))
-                page_width = page_height / 2  # Maintain aspect ratio
-                
-                # Draw page image
-                drawImage(self.image_url, 
-                          page_screen_x - page_width/2, 
-                          app.height/2 - page_height/2, 
-                          width=page_width, 
-                          height=page_height)
+                if self.has_line_of_sight(app):
+                    # Calculate page's screen position
+                    page_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
+                    page_height = min(app.height, app.height / (distance + 0.0001))
+                    page_width = page_height / 2  # Maintain aspect ratio
+                    
+                    # Draw page image
+                    drawImage(self.image_url, 
+                              page_screen_x - page_width/2, 
+                              app.height/2 - page_height/2, 
+                              width=page_width, 
+                              height=page_height)
 
 def onAppStart(app):
 
@@ -95,16 +121,6 @@ def onAppStart(app):
     app.max_pages = 8  # Total pages to collect before game ends
 
 def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
-    """
-    Generate pages within a specific chunk with more controlled generation
-    
-    :param chunk_x: Chunk's x-coordinate
-    :param chunk_y: Chunk's y-coordinate
-    :param image_url: URL or path to page image
-    :param total_pages: Current number of pages generated
-    :param max_pages: Maximum number of pages allowed
-    :return: List of Page objects
-    """
 
     if total_pages >= max_pages:
         return []
@@ -145,16 +161,15 @@ def generateNewChunk():
     # Generate a new chunk without border walls
     chunk = [[0 for _ in range(8)] for _ in range(7)]
     
-    # Create random walls throughout the chunk
+    # REDUCE WALL GENERATION PROBABILITY
+    # MAKE POSSIBLE CHANGES HERE FOR MORE COMPLEXITY BY CREATING A HIGHER CHANCE OF WALL WITH LEVEL DIFFICULTY
     for y in range(7):
         for x in range(8):
-            # THIS 0.3 IS THE CHANCE THERE IS A WALL GENERATED
-            # MAKE POSSIBLE CHANGES HERE FOR MORE COMPLEXITY BY CREATING A HIGHER CHANCE OF WALL WITH LEVEL DIFFICULTY
-            if random.random() < 0.3 and (x, y) != (1, 1):  # Avoids possiblity wall is generated in the player spawn
-                
+            # WALL PROBABILITY 0.15
+            if random.random() < 0.15 and (x, y) != (1, 1):  
                 chunk[y][x] = 1
     
-    # Ensure the chunk has open space (there is a 0 that a user can get into)
+    # Ensure the chunk has open space
     for y in range(7):
         hasPath = False
         for x in range(8):
@@ -167,6 +182,7 @@ def generateNewChunk():
             chunk[y][x] = 0
     
     return chunk
+
 
 def getChunkCoordinates(app, x, y):
     chunkX = int(x // app.chunkSize)
