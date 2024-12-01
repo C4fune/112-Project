@@ -410,9 +410,9 @@ def redrawAll(app):
     
     elif app.page == "mainpage":
         # Draw sky
-        drawRect(0, 0, app.width, app.height/2, fill='black')
+        drawRect(0, 0, app.width, app.height/2, fill='white')
         # Draw ground
-        drawRect(0, app.height/2, app.width, app.height/2, fill='black')
+        drawRect(0, app.height/2, app.width, app.height/2, fill='yellow')
         
         # Cast rays and draw walls
         for i in range(app.rayCount):
@@ -424,7 +424,7 @@ def redrawAll(app):
             
             # Draw wall slice
             x = i * (app.width / app.rayCount)
-            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="white")
+            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black")
         
         # Draw monster (basic representation)
         monsterAngle = math.atan2(app.monsterY - app.playerY, app.monsterX - app.playerX)
