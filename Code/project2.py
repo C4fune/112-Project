@@ -194,15 +194,23 @@ def checkAndGenerateChunks(app, x, y):
                 # Generate new chunk
                 app.chunks[neighborChunk] = generateNewChunk()
                 
+                # Uncollected pages
+                uncollected_pages = [page for page in app.pages if not page.is_collected]
+                
+                # If we already have 4 uncollected pages, skip page generation
+                if len(uncollected_pages) >= 4:
+                    continue
+                
                 # Generate pages for this chunk
                 new_pages = generatePagesInChunk(
                     neighborChunk[0], 
                     neighborChunk[1], 
                     app.url["Page1"],  # Using Kozbie image as placeholder
-                    len(app.pages),  # Pass current page count
-                    app.max_pages   # Pass max pages allowed
+                    len([page for page in app.pages if not page.is_collected]),  # Current uncollected page count
+                    4   # Max 4 pages at a time
                 )
                 app.pages.extend(new_pages)
+
 def getWallAt(app, x, y):
     chunkCoords = getChunkCoordinates(app, x, y)
     if chunkCoords not in app.chunks:
