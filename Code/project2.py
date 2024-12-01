@@ -64,6 +64,33 @@ class Page:
                               width=page_width, 
                               height=page_height)
 
+class Hazard:
+    def __init__(self, x, y, hazard_type):
+        self.x = x
+        self.y = y
+        self.type = hazard_type
+        self.duration = 0  # For temporary effects
+        self.active = True
+        
+        # Specific hazard characteristics
+        self.severity = random.uniform(0.5, 1.5)
+        
+        # Visual representation
+        self.color_map = {
+            'poison': 'green',
+            'trap': 'red',
+            'darkness': 'purple',
+            'slowzone': 'blue'
+        }
+        
+        # Effect duration
+        self.effect_duration_map = {
+            'poison': 50,
+            'trap': 30,
+            'darkness': 40,
+            'slowzone': 60
+        }
+
 def onAppStart(app):
 
     app.page = "homepage"
