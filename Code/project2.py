@@ -120,6 +120,13 @@ def onAppStart(app):
     app.pages_collected = 0
     app.max_pages = 8  # Total pages to collect before game ends
 
+def updateMonsterSpeed(app):
+    base_speed = 0.001
+    speed_increment = 0.0005
+    
+    # monster speed
+    app.monsterSpeed = base_speed + (app.pages_collected * speed_increment)
+
 def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
 
     if total_pages >= max_pages:
@@ -388,6 +395,7 @@ def updateMonster(app):
 
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
+        updateMonsterSpeed(app)
         updateMonster(app)
         
         # Check if player can collect pages
