@@ -306,22 +306,31 @@ def castRay(app, angle):
     x, y = app.playerX, app.playerY
     sin_a = math.sin(angle)
     cos_a = math.cos(angle)
-    
     try:
         while True:
             x += 0.1 * cos_a
             y += 0.1 * sin_a
             
-            if x < 0 or y < 0:  #(this is kinda bruteforcing to ensure we dont get negative coordinate) SUBJECT TO CHANGE IF I HAVE TIME (IT WORKS FOR NOW)
+            if x < 0 or y < 0:
                 return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
             
-            # Check if any chunk hits a wall (good for us)
             if getWallAt(app, x, y) == 1:
-                distance = math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
-                return distance
+                wall_check_offsets = [
+                    (0, 0),
+                    (0.05, 0),
+                    (-0.05, 0),
+                    (0, 0.05),
+                    (0, -0.05)
+                ]
+                
+                for dx, dy in wall_check_offsets:
+                    if getWallAt(app, x + dx, y + dy) == 1:
+                        distance = math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
+                        return distance
             
-    except IndexError: 
-        return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2) #ensure if there is a calcualtion error in ray casting, we move back to the previous ray position
+    except IndexError:
+        return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
+
 
 def updateMonster(app):
     if app.gameOver:
