@@ -354,18 +354,25 @@ def onKeyPress(app, key):
     if key == 'm':
         toggleMusic(app)
     elif key == 'r' and app.gameOver:
+        app.music[app.page].pause()
+        
         # Reset game
         app.playerX = 1.5
         app.playerY = 1.5
         app.monsterX = 6.5
         app.monsterY = 6.5
         app.gameOver = False
+        app.player_health = 100  
+        
+        # RESET EVERYTHING for map c:
         app.chunks = {}
         app.chunks[(0, 0)] = generateInitialChunk()
-
-        # Reset page collection
         app.pages = []
         app.pages_collected = 0
+        app.hazards = []
+ 
+        if app.musicOn:
+            app.music["mainpage"].play(loop=True)
 
 def onKeyHold(app, keys):
     if app.page == "mainpage":
@@ -405,11 +412,32 @@ def onMousePress(app, mouseX, mouseY):
     
     if (app.gameOver):
         if 500 <= mouseX <= 840 and 575 <= mouseY <= 625:
-            app.music[app.page].pause()
+            if app.music[app.page]:
+                app.music[app.page].pause()
+                
+
             app.page = "homepage"
             if app.musicOn:
                 app.music[app.page].play(loop=True)
-            app.gameOver = (not app.gameOver)
+
+            #reset game settings
+            app.gameOver = False
+            app.playerX = 1.5
+            app.playerY = 1.5
+            app.monsterX = 6.5
+            app.monsterY = 6.5
+            app.player_health = 100
+            
+            # Reset chunks
+            app.chunks = {}
+            app.chunks[(0, 0)] = generateInitialChunk()
+
+            # Reset page collection
+            app.pages = []
+            app.pages_collected = 0
+            
+            # Reset hazards
+            app.hazards = []
 
 def toggleMusic(app):
     if app.musicOn:
