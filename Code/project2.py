@@ -64,104 +64,6 @@ class Page:
                               width=page_width, 
                               height=page_height)
 
-class Hazard:
-    def __init__(self, x, y, hazard_type):
-        self.x = x
-        self.y = y
-        self.type = hazard_type
-        self.duration = 0  # For temporary effects
-        self.active = True
-        
-        # Specific hazard characteristics
-        self.severity = random.uniform(0.5, 1.5)
-        
-        # Visual representation
-        self.color_map = {
-            'poison': 'green',
-            'trap': 'red',
-            'darkness': 'purple',
-            'slowzone': 'blue'
-        }
-        
-        # Effect duration
-        self.effect_duration_map = {
-            'poison': 50,
-            'trap': 30,
-            'darkness': 40,
-            'slowzone': 60
-        }
-    
-    def apply_effect(self, app):
-        if not self.active:
-            return
-        
-        # Different effects based on hazard type
-        if self.type == 'poison':
-            app.playerHealth -= 5 * self.severity
-        elif self.type == 'trap':
-            app.moveSpeed *= (1 - 0.3 * self.severity)
-        elif self.type == 'darkness':
-            app.flashlightRadius *= (1 - 0.2 * self.severity)
-        elif self.type == 'slowzone':
-            app.moveSpeed *= (1 - 0.15 * self.severity)
-        
-        self.duration += 1
-        
-        # Check if effect should expire
-        if self.duration > self.effect_duration_map[self.type]:
-            self.active = False
-            
-            # Reset effects
-            if self.type == 'trap':
-                app.moveSpeed = app.default_move_speed
-            elif self.type == 'darkness':
-                app.flashlightRadius = app.default_flashlight_radius
-
-class DynamicLightSystem:
-    def __init__(self):
-        self.battery_life = 100.0
-        self.max_battery = 100.0
-        self.battery_drain_rate = 0.3
-        self.battery_recharge_rate = 0.1
-        
-        # Different battery states
-        self.battery_states = {
-            'full': (0, 100),
-            'medium': (30, 70),
-            'low': (10, 30),
-            'critical': (0, 10)
-        }
-        
-        # Flashlight characteristics
-        self.flashlight_modes = {
-            'standard': {'radius_multiplier': 1.0, 'drain_multiplier': 1.0},
-            'focused': {'radius_multiplier': 0.7, 'drain_multiplier': 0.5},
-            'wide': {'radius_multiplier': 1.5, 'drain_multiplier': 1.5}
-        }
-        
-        self.current_mode = 'standard'
-    
-    def update_battery(self, app):
-        if app.flashlightOn:
-            mode = self.flashlight_modes[self.current_mode]
-            self.battery_life -= self.battery_drain_rate * mode['drain_multiplier']
-        else:
-            # Slow recharge when not in use
-            self.battery_life = min(self.max_battery, 
-                                    self.battery_life + self.battery_recharge_rate)
-        
-        # Check battery states
-        self.battery_life = max(0, min(self.battery_life, self.max_battery))
-        
-        # Disable flashlight if battery is critical
-        if self.battery_life <= 0:
-            app.flashlightOn = False
-    
-    def cycle_flashlight_mode(self):
-        modes = list(self.flashlight_modes.keys())
-        current_index = modes.index(self.current_mode)
-        self.current_mode = modes[(current_index + 1) % len(modes)]
-
 def onAppStart(app):
 
     app.page = "homepage"
@@ -217,28 +119,6 @@ def onAppStart(app):
     app.pages = []  # Will store all page objects
     app.pages_collected = 0
     app.max_pages = 8  # Total pages to collect before game ends
-
-    # Enhanced lighting system
-    app.lightSystem = DynamicLightSystem()
-    app.flashlightOn = False
-    app.default_move_speed = 0.1
-    app.default_flashlight_radius = 200
-    
-    # Expanded hazard system
-    app.hazards = []
-    app.max_hazards = 5
-    app.hazard_generation_cooldown = 0
-    
-    # Player health and status
-    app.playerHealth = 100
-    app.playerMaxHealth = 100
-    app.healthRegenRate = 0.1
-    
-    # Mouse look settings
-    app.mouseSensitivity = 0.002
-    app.lastMouseX = app.width // 2
-    app.lastMouseY = app.height // 2
-
 
 def updateMonsterSpeed(app):
     base_speed = 0.001
