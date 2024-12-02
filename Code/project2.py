@@ -63,7 +63,78 @@ class Page:
                               app.height/2 - page_height/2, 
                               width=page_width, 
                               height=page_height)
-
+                    
+class Hazard:
+    def __init__(self, x, y, hazard_type, intensity=1.0):
+        """
+        Initialize a hazard with world coordinates and type
+        Types: 2 - Fog, 3 - Poison
+        """
+        self.x = x
+        self.y = y
+        self.type = hazard_type
+        self.intensity = intensity  # Scaling factor for hazard effect
+        
+        # Visual representation parameters
+        self.color_map = {
+            2: 'lightgray',  # Fog color
+            3: 'green'       # Poison color
+        }
+        
+        self.opacity_map = {
+            2: 30,  # Fog opacity
+            3: 50   # Poison opacity
+        }
+    
+    def is_near_player(self, player_x, player_y, threshold=0.5):
+        """
+        Check if the hazard is near the player
+        """
+        distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
+        return distance <= threshold
+    
+    def get_effect_strength(self, player_x, player_y):
+        """
+        Calculate the effect strength based on proximity
+        """
+        distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
+        # Inverse square falloff of effect
+        return max(0, self.intensity * (1 / (distance + 0.1)**2))
+    
+    def draw(self, app):
+        """
+        Draw the hazard using ray-casting similar to walls
+        """
+        # Calculate screen position relative to player
+        dx = self.x - app.playerX
+        dy = self.y - app.playerY
+        
+        # Calculate angle and distance
+        angle = math.atan2(dy, dx)
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        # Check if hazard is in player's field of view
+        relative_angle = angle - app.playerAngle
+        if abs(relative_angle) < app.fov/2:
+            # Calculate hazard's screen position
+            hazard_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
+            
+            # Calculate wall slice height (similar to wall rendering)
+            hazard_height = min(app.height, app.height / (distance + 0.0001))
+            
+            # Draw multiple vertical lines to create a wall-like appearance
+            for i in range(int(app.width / app.rayCount)):
+                x = hazard_screen_x - app.width/2 + i * (app.width / app.rayCount)
+                slice_height = hazard_height * (1 + random.uniform(-0.1, 0.1))  # Add slight variation
+                
+                drawLine(
+                    x, 
+                    app.height/2 - slice_height/2, 
+                    x, 
+                    app.height/2 + slice_height/2, 
+                    fill=self.color_map.get(self.type, 'red'),
+                    opacity=self.opacity_map.get(self.type, 50)
+                )
 def onAppStart(app):
 
     app.page = "homepage"
@@ -97,8 +168,8 @@ def onAppStart(app):
     app.playerAngle = 0
     app.fov = math.pi / 3
     app.rayCount = 250
-    app.moveSpeed = 0.1
-    app.rotateSpeed = 0.1
+    app.moveSpeed = 0.3
+    app.rotateSpeed = 0.2
 
     #border radius settings
 
@@ -113,12 +184,19 @@ def onAppStart(app):
     app.gameOverOpacity = 0
     
     # Add step counter for monster updates
-    app.stepsPerSecond = 300
+    app.stepsPerSecond = 1000
 
     # Page-related initialization
     app.pages = []  # Will store all page objects
     app.pages_collected = 0
     app.max_pages = 8  # Total pages to collect before game ends
+
+    # Health system
+    app.player_health = 100
+    app.health_decay_rate = 10  # Health points lost per second in poison
+
+    # Hazards initialization
+    app.hazards = []
 
 def updateMonsterSpeed(app):
     base_speed = 0.001
@@ -152,6 +230,36 @@ def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
             break
     
     return pages
+
+def generateHazardsInChunk(chunk_x, chunk_y, max_hazards=50):
+    hazards = []
+    hazard_count = random.randint(10, max_hazards)
+    for _ in range(hazard_count):
+        hazard_type = random.choice([2, 3])
+        local_x = random.uniform(0, 8)
+        local_y = random.uniform(0, 7)
+        world_x = chunk_x * 8 + local_x
+        world_y = chunk_y * 7 + local_y
+        hazard = Hazard(world_x, world_y, hazard_type, intensity=random.uniform(0.5, 1.5))
+        hazards.append(hazard)
+    return hazards
+
+def processHazardEffects(app):
+    in_poison = False
+    for hazard in app.hazards:
+        if hazard.is_near_player(app.playerX, app.playerY):
+            if hazard.type == 3:  # Poison
+                poison_damage = hazard.get_effect_strength(app.playerX, app.playerY) * app.health_decay_rate
+                app.player_health -= poison_damage
+                in_poison = True
+    
+    if not in_poison and app.player_health < 100:
+        app.player_health = min(100, app.player_health + 5)
+    
+    app.player_health = max(0, app.player_health)  # Ensure health doesn't go below 0
+    
+    if app.player_health <= 0:
+        app.gameOver = True
 
 def generateInitialChunk():
     return [
@@ -189,7 +297,6 @@ def generateNewChunk():
             chunk[y][x] = 0
     
     return chunk
-
 
 def getChunkCoordinates(app, x, y):
     chunkX = int(x // app.chunkSize)
@@ -233,6 +340,13 @@ def checkAndGenerateChunks(app, x, y):
                     4   # Max 4 pages at a time
                 )
                 app.pages.extend(new_pages)
+                
+                # Generate hazards for this chunk
+                new_hazards = generateHazardsInChunk(
+                    neighborChunk[0], 
+                    neighborChunk[1]
+                )
+                app.hazards.extend(new_hazards)
 
 def getWallAt(app, x, y):
     chunkCoords = getChunkCoordinates(app, x, y)
@@ -337,6 +451,7 @@ def castRay(app, angle):
     x, y = app.playerX, app.playerY
     sin_a = math.sin(angle)
     cos_a = math.cos(angle)
+    
     try:
         while True:
             x += 0.1 * cos_a
@@ -345,19 +460,17 @@ def castRay(app, angle):
             if x < 0 or y < 0:
                 return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
             
+            # Check for regular walls
             if getWallAt(app, x, y) == 1:
-                wall_check_offsets = [
-                    (0, 0),
-                    (0.05, 0),
-                    (-0.05, 0),
-                    (0, 0.05),
-                    (0, -0.05)
-                ]
-                
-                for dx, dy in wall_check_offsets:
-                    if getWallAt(app, x + dx, y + dy) == 1:
-                        distance = math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
-                        return distance
+                return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
+            
+            # Check for hazards
+            for hazard in app.hazards:
+                if (abs(hazard.x - x) < 0.5 and abs(hazard.y - y) < 0.5):
+                    return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2), hazard.type
+            
+    except IndexError:
+        return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
             
     except IndexError:
         return math.sqrt((x - app.playerX)**2 + (y - app.playerY)**2)
@@ -398,7 +511,10 @@ def onStep(app):
         updateMonsterSpeed(app)
         updateMonster(app)
         
-        # Check if player can collect pages
+        # Process hazard interactions
+        processHazardEffects(app)
+        
+        # Existing page collection logic
         for page in app.pages:
             if not page.is_collected and page.is_near_player(app.playerX, app.playerY):
                 page.is_collected = True
@@ -407,6 +523,7 @@ def onStep(app):
                 # Check for game win condition
                 if app.pages_collected >= app.max_pages:
                     app.gameOver = True
+
 def redrawAll(app):
     
     if app.page == "creditspage":
@@ -458,14 +575,23 @@ def redrawAll(app):
         # Cast rays and draw walls
         for i in range(app.rayCount):
             rayAngle = app.playerAngle - app.fov/2 + (i / app.rayCount) * app.fov
-            distance = castRay(app, rayAngle)
+            result = castRay(app, rayAngle)
             
-            # Calculate wall height
+            if isinstance(result, tuple):
+                distance, hazard_type = result
+            else:
+                distance = result
+                hazard_type = None
+            
             wallHeight = min(app.height, app.height / (distance + 0.0001))
-            
-            # Draw wall slice
             x = i * (app.width / app.rayCount)
-            drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black")
+            
+            if hazard_type is None:
+                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black")
+            else:
+                color = app.hazards[0].color_map.get(hazard_type, 'red')
+                opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
+                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity)
         
         # Draw monster (basic representation)
         monsterAngle = math.atan2(app.monsterY - app.playerY, app.monsterX - app.playerX)
@@ -491,6 +617,19 @@ def redrawAll(app):
         drawLabel(musicStatus, 900, 50, size=20, fill='red')
         drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
 
+        # Draw health bar
+        # Health bar background
+        drawRect(50, 50, 200, 20, fill='lightgray', border='black')
+
+        # Health bar foreground
+        health_width = max(0, (app.player_health / 100) * 200)
+        health_color = 'green' if app.player_health > 50 else 'red'
+        if health_width > 0:
+            drawRect(50, 50, health_width, 20, fill=health_color)
+
+        # Health text
+        drawLabel(f'Health: {int(app.player_health)}', 150, 80, size=16, bold=True)
+        
         for page in app.pages:
             page.draw(app)
         
