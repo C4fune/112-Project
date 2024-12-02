@@ -58,17 +58,15 @@ class Page:
                     page_width = page_height / 2  # Maintain aspect ratio
                     
                     # Draw page image
-                    drawImage(self.image_url, 
-                              page_screen_x - page_width/2, 
-                              app.height/2 - page_height/2, 
-                              width=page_width, 
-                              height=page_height)
+                    drawImage(self.image_url, page_screen_x - page_width/2, app.height/2 - page_height/2, width=page_width, height=page_height)
                     
 class Hazard:
     def __init__(self, x, y, hazard_type, intensity=1.0):
         """
-        Initialize a hazard with world coordinates and type
-        Types: 2 - Fog, 3 - Poison
+        Initialize a hazard!
+        Remember that how 0's were walking spaces and 1's are walls?
+        2 is Fog!
+        3 is Poison!
         """
         self.x = x
         self.y = y
@@ -127,14 +125,7 @@ class Hazard:
                 x = hazard_screen_x - app.width/2 + i * (app.width / app.rayCount)
                 slice_height = hazard_height * (1 + random.uniform(-0.1, 0.1))  # Add slight variation
                 
-                drawLine(
-                    x, 
-                    app.height/2 - slice_height/2, 
-                    x, 
-                    app.height/2 + slice_height/2, 
-                    fill=self.color_map.get(self.type, 'red'),
-                    opacity=self.opacity_map.get(self.type, 50)
-                )
+                drawLine(x, app.height/2 - slice_height/2, x, app.height/2 + slice_height/2, fill=self.color_map.get(self.type, 'red'), opacity=self.opacity_map.get(self.type, 50))
 def onAppStart(app):
 
     app.page = "homepage"
@@ -627,10 +618,7 @@ def redrawAll(app):
         health_color = 'green' if app.player_health > 50 else 'red'
         if health_width > 0:
             drawRect(50, 50, health_width, 20, fill=health_color)
-
-        # Health text
-        drawLabel(f'Health: {int(app.player_health)}', 150, 80, size=16, bold=True)
-        
+           
         for page in app.pages:
             page.draw(app)
         
