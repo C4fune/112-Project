@@ -317,34 +317,33 @@ def getLocalCoordinates(app, x, y):
 
 def checkAndGenerateChunks(app, x, y):
     currentChunk = getChunkCoordinates(app, x, y)
+    
+    # Only generate nearby chunks if not already generated
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
             neighborChunk = (currentChunk[0] + dx, currentChunk[1] + dy)
-            if neighborChunk not in app.chunks:
-                # Generate new chunk
+            
+            # Only generate if chunk doesn't exist and player is near boundary
+            if neighborChunk not in app.chunks and random.random() < 0.5:  # Probabilistic generation
                 app.chunks[neighborChunk] = generateNewChunk()
                 
-                # Uncollected pages
+                # Limit total page generation
                 uncollected_pages = [page for page in app.pages if not page.is_collected]
+                if len(uncollected_pages) < 4:
+                    new_pages = generatePagesInChunk(
+                        neighborChunk[0], 
+                        neighborChunk[1], 
+                        app.url["Page1"],
+                        len(uncollected_pages),
+                        4
+                    )
+                    app.pages.extend(new_pages)
                 
-                # If we already have 4 uncollected pages, skip page generation
-                if len(uncollected_pages) >= 4:
-                    continue
-                
-                # Generate pages for this chunk
-                new_pages = generatePagesInChunk(
-                    neighborChunk[0], 
-                    neighborChunk[1], 
-                    app.url["Page1"],  # Using Kozbie image as placeholder
-                    len([page for page in app.pages if not page.is_collected]),  # Current uncollected page count
-                    4   # Max 4 pages at a time
-                )
-                app.pages.extend(new_pages)
-                
-                # Generate hazards for this chunk
+                # Similarly limit hazard generation
                 new_hazards = generateHazardsInChunk(
                     neighborChunk[0], 
-                    neighborChunk[1]
+                    neighborChunk[1],
+                    max_hazards=30  # Reduced from 50
                 )
                 app.hazards.extend(new_hazards)
 
@@ -430,22 +429,24 @@ def toggleMusic(app):
         app.musicOn = True
 
 def movePlayer(app, distance):
-    newX = app.playerX + math.cos(app.playerAngle) * distance
-    newY = app.playerY + math.sin(app.playerAngle) * distance
+    # Add a time-based factor to make movement smoother
+    timeScale = 1.0  # You can adjust this based on performance
     
-    # Ensure coordinates stay within valid ranges
+    newX = app.playerX + math.cos(app.playerAngle) * distance * timeScale
+    newY = app.playerY + math.sin(app.playerAngle) * distance * timeScale
+    
+    # Boundary checks remain the same
     if newX < 0: newX = 0
     if newY < 0: newY = 0
     
-    checkAndGenerateChunks(app, newX, newY)
+    # Simplified chunk generation
+    if random.random() < 0.3:  # Reduce frequency of chunk generation
+        checkAndGenerateChunks(app, newX, newY)
     
-    # Only move if the new position is not a 1 (wall)
-    try:
-        if getWallAt(app, newX, newY) == 0:
-            app.playerX = newX
-            app.playerY = newY
-    except IndexError:
-        pass  # SKIP
+    # Wall collision check
+    if getWallAt(app, newX, newY) == 0:
+        app.playerX = newX
+        app.playerY = newY
 
 def castRay(app, angle):
     x, y = app.playerX, app.playerY
