@@ -508,7 +508,7 @@ def updateMonster(app):
     distance = math.sqrt(dx**2 + dy**2)
     
     # Check for game over condition
-    if distance < 0.2:
+    if distance < 1:
         app.gameOver = True
         return
         
