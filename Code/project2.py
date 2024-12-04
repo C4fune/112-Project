@@ -9,7 +9,10 @@ class Page:
         self.image_url = image_url
         self.is_collected = False
     
-    def is_near_player(self, player_x, player_y, threshold=0.5):
+    # Threshold Value is subjected to change under discretion
+    # PRIORITY: PAGE OBTAINING AND FINDING IS STILL VERY LAGGY! FIX THIS ISSUE ASAP
+
+    def is_near_player(self, player_x, player_y, threshold=1):
         distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
         return distance <= threshold
     
@@ -24,9 +27,13 @@ class Page:
         page_angle = math.atan2(dy, dx)
         
         # Cast a ray to check if there are walls between player and page
+
         x, y = app.playerX, app.playerY
         step_x = 0.1 * math.cos(page_angle)
         step_y = 0.1 * math.sin(page_angle)
+
+        # Optional Fix? The algorithm to determine the page is behind a wall or not is very simple rn
+        # Create a latter function that can show the wall in a different way (not just a simple image picture? create some angles)
         
         for _ in range(int(distance / 0.1)):
             x += step_x
@@ -37,7 +44,7 @@ class Page:
                 return True
         
         return True
-    
+     
     def draw(self, app):
         if not self.is_collected:
             # Calculate screen position relative to player
@@ -54,7 +61,7 @@ class Page:
                 if self.has_line_of_sight(app):
                     # Calculate page's screen position
                     page_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
-                    page_height = min(app.height, app.height / (distance + 0.0001))
+                    page_height = min(app.height, app.height / (distance + 0.0001)) 
                     page_width = page_height / 2  # Maintain aspect ratio
                     
                     # Draw page image
@@ -74,14 +81,19 @@ class Hazard:
         self.intensity = intensity  # Scaling factor for hazard effect
         
         # Visual representation parameters
+
         self.color_map = {
             2: 'lightgray',  # Fog color
             3: 'green'       # Poison color
         }
         
+        # Opacity Values (SUBJECT TO CHANGE IF NEEDED)
+
         self.opacity_map = {
+            # do not make it above 70! this makes the code hella laggy (perhaps work on some optimization in TA hours?)
+            # SELFNOTE
             2: 30,  # Fog opacity
-            3: 50   # Poison opacity
+            3: 50   # Poison opacity 
         }
     
     def is_near_player(self, player_x, player_y, threshold=0.5):
@@ -89,7 +101,7 @@ class Hazard:
         Check if the hazard is near the player
         """
         distance = math.sqrt((self.x - player_x)**2 + (self.y - player_y)**2)
-        return distance <= threshold
+        return distance <= threshold # perhaps implement an additional feature here where threshold values can be editted in some form of setting page
     
     def get_effect_strength(self, player_x, player_y):
         """
@@ -117,15 +129,19 @@ class Hazard:
             # Calculate hazard's screen position
             hazard_screen_x = app.width/2 + math.tan(relative_angle) * app.width/2
             
-            # Calculate wall slice height (similar to wall rendering)
+            # Calculate wall slice height
             hazard_height = min(app.height, app.height / (distance + 0.0001))
             
-            # Draw multiple vertical lines to create a wall-like appearance
+            # RayCast
             for i in range(int(app.width / app.rayCount)):
                 x = hazard_screen_x - app.width/2 + i * (app.width / app.rayCount)
                 slice_height = hazard_height * (1 + random.uniform(-0.1, 0.1))  # Add slight variation
                 
                 drawLine(x, app.height/2 - slice_height/2, x, app.height/2 + slice_height/2, fill=self.color_map.get(self.type, 'red'), opacity=self.opacity_map.get(self.type, 50))
+
+        # Optional Fix: Maybe create a different 3d version to represent hazard instead of different colored wall? 
+        
+
 def onAppStart(app):
 
     app.page = "homepage"
@@ -160,7 +176,7 @@ def onAppStart(app):
     app.fov = math.pi / 3
     app.rayCount = 250
     app.moveSpeed = 0.3
-    app.rotateSpeed = 0.2
+    app.rotateSpeed = 0.3
 
     #border radius settings
 
@@ -190,8 +206,8 @@ def onAppStart(app):
     app.hazards = []
 
 def updateMonsterSpeed(app):
-    base_speed = 0.001
-    speed_increment = 0.0005
+    base_speed = 0.1
+    speed_increment = 0.025
     
     # monster speed
     app.monsterSpeed = base_speed + (app.pages_collected * speed_increment)
