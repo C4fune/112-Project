@@ -175,7 +175,7 @@ def onAppStart(app):
     app.playerY = 1.5
     app.playerAngle = 0
     app.fov = math.pi / 3
-    app.rayCount = 400
+    app.rayCount = 250
     app.moveSpeed = 0.3
     app.rotateSpeed = 0.3
 
@@ -187,12 +187,11 @@ def onAppStart(app):
     # Monster initialization
     app.monsterX = 6.5  # Start monster away from player
     app.monsterY = 6.5
-    app.monsterSpeed = 0.003  # Adjust this to change difficulty
     app.gameOver = False
     app.gameOverOpacity = 0
     
     # Add step counter for monster updates
-    app.stepsPerSecond = 1000
+    app.stepsPerSecond = 100
 
     # Page-related initialization
     app.pages = []  # Will store all page objects
@@ -207,7 +206,7 @@ def onAppStart(app):
     app.hazards = []
 
 def updateMonsterSpeed(app):
-    base_speed = 0.1
+    base_speed = 0.01
     speed_increment = 0.025
     
     # monster speed
@@ -550,7 +549,7 @@ def updateMonster(app):
     # Calculate new position
     app.monsterX = app.monsterX + dx * app.monsterSpeed
     app.monsterY = app.monsterY + dy * app.monsterSpeed
-    
+
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
         updateMonsterSpeed(app)
@@ -637,11 +636,16 @@ def redrawAll(app):
             x = i * (app.width / app.rayCount)
             
             if hazard_type is None:
-                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black")
-            else:
+                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black", lineWidth = 5)
+            elif hazard_type == 2:
                 color = app.hazards[0].color_map.get(hazard_type, 'red')
                 opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
-                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity)
+                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
+            elif hazard_type == 3:
+                color = app.hazards[0].color_map.get(hazard_type, 'red')
+                opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
+                drawLine(x, app.height/2 + 3 * wallHeight/8, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
+
         
         # Draw monster (basic representation)
         monsterAngle = math.atan2(app.monsterY - app.playerY, app.monsterX - app.playerX)
