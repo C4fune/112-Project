@@ -140,7 +140,7 @@ class Hazard:
                 drawLine(x, app.height/2 - slice_height/2, x, app.height/2 + slice_height/2, fill=self.color_map.get(self.type, 'red'), opacity=self.opacity_map.get(self.type, 50))
 
         # Optional Fix: Maybe create a different 3d version to represent hazard instead of different colored wall? 
-        
+
 
 def onAppStart(app):
 
@@ -174,7 +174,7 @@ def onAppStart(app):
     app.playerY = 1.5
     app.playerAngle = 0
     app.fov = math.pi / 3
-    app.rayCount = 250
+    app.rayCount = 400
     app.moveSpeed = 0.3
     app.rotateSpeed = 0.3
 
@@ -191,7 +191,7 @@ def onAppStart(app):
     app.gameOverOpacity = 0
     
     # Add step counter for monster updates
-    app.stepsPerSecond = 1000
+    app.stepsPerSecond = 2000
 
     # Page-related initialization
     app.pages = []  # Will store all page objects
@@ -604,7 +604,12 @@ def redrawAll(app):
     
     elif app.page == "mainpage":
         # Draw sky
-        drawRect(0, 0, app.width, app.height/2, fill='white')
+
+        drawRect(0, app.height/2, app.width, app.height/2, fill = 'white')
+
+        # drawImage("Code/images/GameSky.png", 0, 0, align = 'center', width = app.width, height = app.height/2)
+        # THE CODE ABOVE IS FOR THE BACKGROUND THAT DOESNT WORK RN
+
         # Draw ground
         drawRect(0, app.height/2, app.width, app.height/2, fill='yellow')
         
