@@ -152,7 +152,8 @@ def onAppStart(app):
         "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
         "mainpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
         "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3")
+        "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
+        "scary": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3")  # Add a scary sound
     }
 
     app.url = {
@@ -191,7 +192,7 @@ def onAppStart(app):
     app.gameOverOpacity = 0
     
     # Add step counter for monster updates
-    app.stepsPerSecond = 2000
+    app.stepsPerSecond = 1000
 
     # Page-related initialization
     app.pages = []  # Will store all page objects
@@ -200,7 +201,7 @@ def onAppStart(app):
 
     # Health system
     app.player_health = 100
-    app.health_decay_rate = 10  # Health points lost per second in poison
+    app.health_decay_rate = 0.1  # Health points lost per second in poison
 
     # Hazards initialization
     app.hazards = []
@@ -238,7 +239,7 @@ def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
     
     return pages
 
-def generateHazardsInChunk(chunk_x, chunk_y, max_hazards=50):
+def generateHazardsInChunk(chunk_x, chunk_y, max_hazards=30):
     hazards = []
     hazard_count = random.randint(10, max_hazards)
     for _ in range(hazard_count):
@@ -527,7 +528,20 @@ def updateMonster(app):
     if distance < 1:
         app.gameOver = True
         return
-        
+    
+    # Play scary sound if monster is close
+    if distance < 3:
+        # Pause current music
+        if app.musicOn:
+            app.music[app.page].pause()
+            # Play scary sound
+            app.music["scary"].play(loop=True)
+    else:
+        # Stop scary sound and resume original music
+        if app.musicOn:
+            app.music["scary"].pause()
+            app.music[app.page].play(loop=True)
+    
     # Normalize direction
     if distance > 0:
         dx /= distance
@@ -537,11 +551,6 @@ def updateMonster(app):
     app.monsterX = app.monsterX + dx * app.monsterSpeed
     app.monsterY = app.monsterY + dy * app.monsterSpeed
     
-    # This function makes it where the monster can walk through walls or not
-    #if getWallAt(app, newX, newY) == 0:
-       #app.monsterX = newX
-       #app.monsterY = newY
-
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
         updateMonsterSpeed(app)
