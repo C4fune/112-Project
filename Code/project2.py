@@ -311,17 +311,19 @@ def onAppStart(app):
     # Page-related initialization
     app.pages = []  # Will store all page objects
     app.pages_collected = 0
-    app.max_pages = 8  # Total pages to collect before game ends
 
     # Health system
     app.player_health = 100
-    app.health_decay_rate = 0.1  # Health points lost per second in poison
 
     # Hazards initialization
     app.hazards = []
 
     #Lightings initialization
     app.lightingSystem = LightingSystem(app)
+
+    settings = app.difficulty_settings[app.difficulty]
+    app.max_pages = settings["max_pages"]
+    app.health_decay_rate = settings["health_decay_rate"]
 
 def updateMonsterSpeed(app):
     settings = app.difficulty_settings[app.difficulty]
@@ -538,6 +540,25 @@ def onMousePress(app, mouseX, mouseY):
             if app.musicOn:
                 app.music[app.page].play(loop=True)
     
+    if app.page == "creditspage":
+        # Easy Button
+        if 200 <= mouseX <= 400 and 300 <= mouseY <= 350:
+            app.difficulty = 'easy'
+            app.max_pages = app.difficulty_settings['easy']['max_pages']
+            app.health_decay_rate = app.difficulty_settings['easy']['health_decay_rate']
+        
+        # Medium Button
+        elif 400 <= mouseX <= 600 and 300 <= mouseY <= 350:
+            app.difficulty = 'medium'
+            app.max_pages = app.difficulty_settings['medium']['max_pages']
+            app.health_decay_rate = app.difficulty_settings['medium']['health_decay_rate']
+        
+        # Hard Button
+        elif 600 <= mouseX <= 800 and 300 <= mouseY <= 350:
+            app.difficulty = 'hard'
+            app.max_pages = app.difficulty_settings['hard']['max_pages']
+            app.health_decay_rate = app.difficulty_settings['hard']['health_decay_rate']
+    
     if (app.page != "homepage" and app.page != "mainpage"):
         if 825 <= mouseX <= 975 and 85 <= mouseY <= 135:
             app.music[app.page].pause()
@@ -549,9 +570,9 @@ def onMousePress(app, mouseX, mouseY):
         if 500 <= mouseX <= 840 and 575 <= mouseY <= 625:
             if app.music[app.page]:
                 app.music[app.page].pause()
-                
 
             app.page = "homepage"
+
             if app.musicOn:
                 app.music[app.page].play(loop=True)
 
@@ -690,7 +711,37 @@ def onStep(app):
 def redrawAll(app):
     
     if app.page == "creditspage":
-        drawLabel("This is the creditspage", 200, 200)
+        
+        drawLabel("Game Settings", 500, 100, size=48, bold=True)
+        drawLabel("Difficulty:", 500, 250, size=32)
+
+        #buttons
+        drawRect(200, 300, 200, 50, fill='green' if app.difficulty == 'easy' else None, border='green')
+        drawLabel("Easy", 300, 325, size=24)
+
+
+        drawRect(400, 300, 200, 50, fill='yellow' if app.difficulty == 'medium' else None, border='yellow')
+        drawLabel("Medium", 500, 325, size=24)
+
+        drawRect(600, 300, 200, 50, fill='red' if app.difficulty == 'hard' else None, border='red')
+        drawLabel("Hard", 700, 325, size=24)
+
+        # Current Difficulty Display
+        drawLabel(f"Current Difficulty: {app.difficulty.capitalize()}", 500, 400, size=24)
+
+        # Difficulty Details (changes by difficulty)
+        settings = app.difficulty_settings[app.difficulty]
+        drawLabel(f"Pages to Collect: {settings['max_pages']}", 500, 450, size=20)
+        drawLabel(f"Monster Speed: {settings['monster_base_speed']:.3f}", 500, 480, size=20)
+        drawLabel(f"Darkness Level: {settings['base_darkness']}", 500, 510, size=20)
+
+        # Back to Homepage
+        musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
+        drawLabel(musicStatus, 900, 50, size=20)
+        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
+
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
         drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
