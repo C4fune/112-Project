@@ -141,6 +141,92 @@ class Hazard:
 
         # Optional Fix: Maybe create a different 3d version to represent hazard instead of different colored wall? 
 
+# SELFNOTE: Lighting system that gets progressively scary!
+# TODO: Potentially optimize this if it becomes laggy
+# PRIORITY: Create an immersive and terrifying lighting experience
+
+class LightingSystem:
+    def __init__(self, app):
+        self.app = app
+        # Threshold Values are subjected to change under discretion
+        self.base_darkness = 30  # Reduced base darkness
+        self.flicker_intensity = 5  # Reduced flicker intensity
+        self.flicker_timer = 0
+        self.flicker_interval = 10
+        self.current_flicker = 0
+        
+    def calculate_light_opacity(self):
+        """
+        Calculate dynamic lighting opacity!
+        This gets scarier as you progress through the game
+        """
+        # Darker as you collect more pages (MORE SCARY!)
+        base_opacity = self.base_darkness + (self.app.pages_collected * 2)
+        
+        # Monster proximity increases darkness
+        # The closer the monster, the more terrifying the lighting becomes
+        monster_distance = math.sqrt(
+            (self.app.monsterX - self.app.playerX)**2 + 
+            (self.app.monsterY - self.app.playerY)**2
+        )
+        
+        # Closer monster means more darkness
+        # Perhaps implement an additional feature here where darkness scales intelligently
+        proximity_factor = max(0, 20 - (monster_distance * 5))
+        
+        # Add slight random flickering
+        # SELFNOTE: Don't make this too crazy or it'll become laggy!
+        self.flicker_timer += 1
+        if self.flicker_timer >= self.flicker_interval:
+            self.current_flicker = random.uniform(-self.flicker_intensity, self.flicker_intensity)
+            self.flicker_timer = 0
+        
+        # Combine all scary factors
+        # Cap the opacity to prevent complete blackout
+        total_opacity = min(60, base_opacity + proximity_factor + self.current_flicker)
+        
+        return total_opacity
+
+    def apply_lighting_effect(self):
+        """
+        Apply a SUPER SCARY lighting effect to the entire screen
+        Prepare to be spooked!
+        """
+        # Calculate the current scary level of darkness
+        opacity = self.calculate_light_opacity()
+        
+        # Create a radial gradient to simulate a weak, dying flashlight
+        # Because what's scarier than a flashlight about to go out?
+        centerX = self.app.width / 2
+        centerY = self.app.height / 2
+        
+        # Maximum radius of the gradient
+        # do not make it above 70! this makes the code hella laggy
+        max_radius = min(self.app.width, self.app.height)
+        
+        # Create multiple circles with decreasing opacity
+        # Might need some optimization in TA hours
+        for i in range(5):
+            radius = max_radius * (1 - i * 0.2)
+            gradient_opacity = max(0, opacity - (i * 10))
+            
+            # Use darker color for a more terrifying effect
+            drawCircle(
+                centerX, centerY, 
+                radius, 
+                fill='darkgray', 
+                opacity=gradient_opacity
+            )
+        
+        # Optional Fix? Maybe create a different way to represent darkness
+        # Add a subtle vignette for extra scariness
+        drawRect(
+            0, 0, 
+            self.app.width, 
+            self.app.height, 
+            fill='black', 
+            opacity=opacity/2  # Reduced to prevent complete darkness
+        )
 
 def onAppStart(app):
 
@@ -204,6 +290,9 @@ def onAppStart(app):
 
     # Hazards initialization
     app.hazards = []
+
+    #Lightings initialization
+    app.lightingSystem = LightingSystem(app)
 
 def updateMonsterSpeed(app):
     base_speed = 0.01
@@ -687,6 +776,8 @@ def redrawAll(app):
         # Display pages collected
         drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 
                   500, 200, size=20, fill='red')
+        
+        app.lightingSystem.apply_lighting_effect()
 
         if app.gameOver:
             drawRect(0, 0, app.width, app.height, fill='black', opacity=80)   
