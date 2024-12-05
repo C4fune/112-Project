@@ -814,7 +814,7 @@ def redrawAll(app):
             elif hazard_type == 3:
                 color = app.hazards[0].color_map.get(hazard_type, 'red')
                 opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
-                drawLine(x, app.height/2 + 3 * wallHeight/8, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
+                drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
 
         
         # Draw monster (basic representation)
