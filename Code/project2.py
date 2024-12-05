@@ -148,12 +148,14 @@ class Hazard:
 class LightingSystem:
     def __init__(self, app):
         self.app = app
-        # Threshold Values are subjected to change under discretion
-        self.base_darkness = 30  # Reduced base darkness
-        self.flicker_intensity = 5  # Reduced flicker intensity
+        # Use difficulty settings for base darkness!
+        settings = app.difficulty_settings[app.difficulty]
+        self.base_darkness = settings["base_darkness"]
+        self.flicker_intensity = 5
         self.flicker_timer = 0
         self.flicker_interval = 10
         self.current_flicker = 0
+
         
     def calculate_light_opacity(self):
         """
@@ -247,6 +249,33 @@ def onAppStart(app):
         "Monster" : 'Code/images/Kozbie.jpg'
     }
 
+    app.difficulty = "medium"  # default difficulty
+
+    app.difficulty_settings = {
+        "easy": {
+            "monster_base_speed": 0.005,
+            "monster_speed_increment": 0.01,
+            "base_darkness": 20,
+            "max_pages": 4,
+            "health_decay_rate": 0.05
+        },
+        "medium": {
+            "monster_base_speed": 0.01,
+            "monster_speed_increment": 0.025,
+            "base_darkness": 30,
+            "max_pages": 6,
+            "health_decay_rate": 0.1
+        },
+        "hard": {
+            "monster_base_speed": 0.015,
+            "monster_speed_increment": 0.04,
+            "base_darkness": 40,
+            "max_pages": 8,
+            "health_decay_rate": 0.15
+        }
+    }
+
+
     app.musicOn = True
     app.music[app.page].play(loop=True)
 
@@ -295,8 +324,9 @@ def onAppStart(app):
     app.lightingSystem = LightingSystem(app)
 
 def updateMonsterSpeed(app):
-    base_speed = 0.01
-    speed_increment = 0.025
+    settings = app.difficulty_settings[app.difficulty]
+    base_speed = settings["monster_base_speed"]
+    speed_increment = settings["monster_speed_increment"]
     
     # monster speed
     app.monsterSpeed = base_speed + (app.pages_collected * speed_increment)
