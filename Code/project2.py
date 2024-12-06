@@ -830,7 +830,7 @@ def redrawAll(app):
         
     elif app.page == "homepage":
 
-        drawImage('Code/images/introbackground.png', 0, 0)
+        drawImage('Code/images/introbackground.png', 0, 0, width = app.width, height = app.height)
 
         drawImage('Code/images/UI/Title.png', 350, 50)
 
@@ -851,8 +851,8 @@ def redrawAll(app):
         drawImage('Code/images/UI/SettingsButton.png', 750, 750, width = 210, height = 75, align = 'center')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, size=20, fill = 'white')
+        drawRect(825, 25, 150, 50, fill=None, border= "white", borderWidth=5)
     
     elif app.page == "mainpage":
         # Draw sky
