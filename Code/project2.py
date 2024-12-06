@@ -764,17 +764,14 @@ def redrawAll(app):
         drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
         
     elif app.page == "homepage":
-        drawLabel("112 BackRooms", 500, 100, size=64)
-        drawLabel("Collect 8 pages as you run away from scary monsters!", 500, 175, size=32)
-        
-        drawRect(180, 725, 140, 50, fill=None, border="black", borderWidth=5)
-        drawLabel("Start Game", 250, 750, size=16)
-        
-        drawRect(430, 725, 140, 50, fill=None, border="black", borderWidth=5)
-        drawLabel("How to Play", 500, 750, size=16)
 
-        drawRect(680, 725, 140, 50, fill=None, border="black", borderWidth=5)
-        drawLabel("Credits", 750, 750, size=16)
+        drawImage('Code/images/introbackground.png', 0, 0)
+        
+        drawImage('Code/images/UI/PlaygameButton.png', 250, 750, width = 210, height = 75, align = 'center')
+    
+        drawImage('Code/images/UI/HowToPlayButton.png', 500, 750, width = 210, height = 75, align = 'center')
+
+        drawImage('Code/images/UI/SettingsButton.png', 750, 750, width = 210, height = 75, align = 'center')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
         drawLabel(musicStatus, 900, 50, size=20)
@@ -785,11 +782,9 @@ def redrawAll(app):
 
         drawRect(0, app.height/2, app.width, app.height/2, fill = 'white')
 
-        drawImage("Code/images/GameSky.png", 0, 0, align = 'center', width = 1000, height = 500)
+        drawImage("Code/images/GameSky.jpg", 0, 0, align = 'center', width = 2000, height = 1000)
+        drawImage("Code/images/GameGround.png", 0, 1000, align = 'center', width = 2000, height = 1000)
         # THE CODE ABOVE IS FOR THE BACKGROUND THAT DOESNT WORK RN
-
-        # Draw ground
-        drawRect(0, app.height/2, app.width, app.height/2, fill='yellow')
         
         # Cast rays and draw walls
         for i in range(app.rayCount):
@@ -833,6 +828,7 @@ def redrawAll(app):
             drawImage(app.url["Monster"], monsterScreenX - monsterWidth/2, app.height/2 - monsterHeight/2, width=monsterWidth, height=monsterHeight)
         
         # Draw UI elements
+
         drawLabel("Use arrow keys to move", 500, 50, size=20, fill='red')
         drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='red')
         drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 500, 150, size=20, fill='red')
@@ -855,8 +851,7 @@ def redrawAll(app):
             page.draw(app)
         
         # Display pages collected
-        drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 
-                  500, 200, size=20, fill='red')
+        drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 500, 200, size=20, fill='red')
         
         app.lightingSystem.apply_lighting_effect()
 
