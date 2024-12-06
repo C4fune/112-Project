@@ -785,7 +785,7 @@ def redrawAll(app):
 
         drawRect(0, app.height/2, app.width, app.height/2, fill = 'white')
 
-        # drawImage("Code/images/GameSky.png", 0, 0, align = 'center', width = app.width, height = app.height/2)
+        drawImage("Code/images/GameSky.png", 0, 0, align = 'center', width = 1000, height = 500)
         # THE CODE ABOVE IS FOR THE BACKGROUND THAT DOESNT WORK RN
 
         # Draw ground
