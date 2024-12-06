@@ -230,6 +230,44 @@ class LightingSystem:
             opacity=opacity/2  # Reduced to prevent complete darkness
         )
 
+class Character:
+    def __init__(self, x, y, image_url, speed=5):
+        self.x = x
+        self.y = y
+        self.image_url = image_url
+        self.speed = speed
+        self.width = 150 # Default image width
+        self.height = 150  # Default image height
+    
+    def draw(self, app):
+        drawImage(self.image_url, self.x, self.y, width=self.width, height=self.height)
+    
+    def calculate_distance(self, other_character):
+        return ((self.x - other_character.x)**2 + (self.y - other_character.y)**2)**0.5
+    
+    def move_towards(self, target):
+        """
+        Move character towards a target character
+        """
+        dx = target.x - self.x
+        dy = target.y - self.y
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        if distance > 0:
+            self.x += (dx / distance) * self.speed
+            self.y += (dy / distance) * self.speed
+
+class Boundary:
+    def __init__(self, width, height):
+
+        self.width = width
+        self.height = height
+    
+    def confine_character(self, character):
+        #Keep character within screen boundaries
+        character.x = max(0, min(character.x, self.width - character.width))
+        character.y = max(0, min(character.y, self.height - character.height))
+
 def onAppStart(app):
 
     app.page = "homepage"
@@ -320,6 +358,15 @@ def onAppStart(app):
 
     #Lightings initialization
     app.lightingSystem = LightingSystem(app)
+
+    #pictures chasing each other lmao initialiation
+
+    app.kozbie = Character(100, 100, 'Code/images/Kozbie.jpg', speed=15)
+    app.henry = Character(700, 600, 'Code/images/Henry.jpg', speed=25)
+    
+    # Create boundary
+    app.boundary = Boundary(app.width, app.height)
+
 
     settings = app.difficulty_settings[app.difficulty]
     app.max_pages = settings["max_pages"]
@@ -707,6 +754,24 @@ def onStep(app):
                 # Check for game win condition
                 if app.pages_collected >= app.max_pages:
                     app.gameOver = True
+    
+    if app.page == 'homepage':
+        app.kozbie.move_towards(app.henry)
+        
+        # Henry tries to run away from Kozbie
+
+        opposite_direction_henry = Character(
+            app.kozbie.x + (app.henry.x - app.kozbie.x) * 2,
+            app.kozbie.y + (app.henry.y - app.kozbie.y) * 2,
+            app.henry.image_url
+        )
+
+        app.henry.move_towards(opposite_direction_henry)
+        
+        # characters are confined to screen of app.width/height (perhaps even create a mini boundary)
+
+        app.boundary.confine_character(app.kozbie)
+        app.boundary.confine_character(app.henry)
 
 def redrawAll(app):
     
@@ -766,7 +831,19 @@ def redrawAll(app):
     elif app.page == "homepage":
 
         drawImage('Code/images/introbackground.png', 0, 0)
-        
+
+        drawImage('Code/images/UI/Title.png', 350, 50)
+
+        drawImage('Code/images/UI/Author.png', 350, 200)
+
+        # Draw characters
+        app.kozbie.draw(app)
+        app.henry.draw(app)
+        distance = app.kozbie.calculate_distance(app.henry)
+
+        drawImage('Code/images/thegoat.png', 180, 450, width = 150, height = 150)
+        drawImage('Code/images/preach.png', -100, 250, width = 350, height = 350)
+
         drawImage('Code/images/UI/PlaygameButton.png', 250, 750, width = 210, height = 75, align = 'center')
     
         drawImage('Code/images/UI/HowToPlayButton.png', 500, 750, width = 210, height = 75, align = 'center')
@@ -802,17 +879,23 @@ def redrawAll(app):
             
             if hazard_type is None:
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black", lineWidth = 5)
+
             elif hazard_type == 2:
                 color = app.hazards[0].color_map.get(hazard_type, 'red')
                 opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
+
             elif hazard_type == 3:
                 color = app.hazards[0].color_map.get(hazard_type, 'red')
                 opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
 
         
-        # Draw monster (basic representation)
+        # Draw monster 
+
+        # Obtained atan2 function implementation from a StackOverflow Inquiry as user "Alctoria"
+        # OPTIONAL FIX: Create a represetnation of Kozbie where he is only partially shown when there is a wall between him and user's full sight of view.
+
         monsterAngle = math.atan2(app.monsterY - app.playerY, app.monsterX - app.playerX)
         monsterRelativeAngle = monsterAngle - app.playerAngle
         monsterDistance = math.sqrt((app.monsterX - app.playerX)**2 + (app.monsterY - app.playerY)**2)
