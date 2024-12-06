@@ -142,7 +142,7 @@ class Hazard:
         # Optional Fix: Maybe create a different 3d version to represent hazard instead of different colored wall? 
 
 # SELFNOTE: Lighting system that gets progressively scary!
-# TODO: Potentially optimize this if it becomes laggy
+# Optional: Potentially optimize this if it becomes laggy
 # PRIORITY: Create an immersive and terrifying lighting experience
 
 class LightingSystem:
@@ -273,13 +273,13 @@ def onAppStart(app):
     app.page = "homepage"
     app.width = 1000
     app.height = 1000
-    
+
     app.music = {
-        "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
-        "mainpage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "creditspage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "howtopage": Sound("https://s3.amazonaws.com/cmu-cs-academy.lib.prod/sounds/Drum1.mp3"),
-        "scary": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3")  # Add a scary sound
+        "homepage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"), 
+        "mainpage": Sound("https://eta.vgmtreasurechest.com/soundtracks/doraemon-song-collection-40th-anniversary/gzehugfdkc/1-02%20Doraemon%27s%20Song%2040th%20Anniversary.mp3"),
+        "settingspage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
+        "howtopage": Sound("https://vgmsite.com/soundtracks/new-super-luigi-u-2019/ztszdhxgsu/01.%20Title%20Theme.mp3"),
+        "scary": Sound("https://kappa.vgmsite.com/soundtracks/outlast-soundtrack-2013/dmoxehqcha/14%20-%20Explosion.mp3")  # Add a scary sound
     }
 
     app.url = {
@@ -570,24 +570,25 @@ def onKeyHold(app, keys):
             movePlayer(app, -app.moveSpeed)
 
 def onMousePress(app, mouseX, mouseY):
+    # First, pause the current page's music
+    if app.musicOn and app.page in app.music:
+        app.music[app.page].pause()
+    
     if app.page == "homepage":
         if 180 <= mouseX <= 320 and 725 <= mouseY <= 775:
-            app.music[app.page].pause()
             app.page = "mainpage"
             if app.musicOn:
-                app.music[app.page].play(loop=True)
-        if 430 <= mouseX <= 570 and 725 <= mouseY <= 775:
-            app.music[app.page].pause()
+                app.music["mainpage"].play(loop=True)
+        elif 430 <= mouseX <= 570 and 725 <= mouseY <= 775:
             app.page = "howtopage"
             if app.musicOn:
-                app.music[app.page].play(loop=True)
-        if 680 <= mouseX <= 820 and 725 <= mouseY <= 775:
-            app.music[app.page].pause()
-            app.page = "creditspage"
+                app.music["howtopage"].play(loop=True)
+        elif 680 <= mouseX <= 820 and 725 <= mouseY <= 775:
+            app.page = "settingspage"
             if app.musicOn:
-                app.music[app.page].play(loop=True)
+                app.music["settingspage"].play(loop=True)
     
-    if app.page == "creditspage":
+    if app.page == "settingspage":
         # Easy Button
         if 200 <= mouseX <= 400 and 300 <= mouseY <= 350:
             app.difficulty = 'easy'
@@ -608,22 +609,17 @@ def onMousePress(app, mouseX, mouseY):
     
     if (app.page != "homepage" and app.page != "mainpage"):
         if 825 <= mouseX <= 975 and 85 <= mouseY <= 135:
-            app.music[app.page].pause()
             app.page = "homepage"
             if app.musicOn:
-                app.music[app.page].play(loop=True)
+                app.music["homepage"].play(loop=True)
     
     if (app.gameOver):
         if 500 <= mouseX <= 840 and 575 <= mouseY <= 625:
-            if app.music[app.page]:
-                app.music[app.page].pause()
-
             app.page = "homepage"
-
             if app.musicOn:
-                app.music[app.page].play(loop=True)
+                app.music["homepage"].play(loop=True)
 
-            #reset game settings
+            # Reset game settings
             app.gameOver = False
             app.playerX = 1.5
             app.playerY = 1.5
@@ -775,58 +771,56 @@ def onStep(app):
 
 def redrawAll(app):
     
-    if app.page == "creditspage":
+    if app.page == "settingspage":
+
+        drawImage('Code/images/settingsbackground.png', 0, 0, height = 1000, width = 1000)
         
-        drawLabel("Game Settings", 500, 100, size=48, bold=True)
-        drawLabel("Difficulty:", 500, 250, size=32)
+        drawLabel("Game Settings", 500, 100, size=48, fill = 'white', bold=True)
+
+        drawLabel("Difficulty:", 500, 250, fill = 'white', bold = True , size=32)
 
         #buttons
-        drawRect(200, 300, 200, 50, fill='green' if app.difficulty == 'easy' else None, border='green')
-        drawLabel("Easy", 300, 325, size=24)
+        drawRect(100, 300, 200, 50, fill='green' if app.difficulty == 'easy' else None, border='green')
+        drawLabel("Easy", 200, 325, fill = 'white', size=24)
 
 
         drawRect(400, 300, 200, 50, fill='yellow' if app.difficulty == 'medium' else None, border='yellow')
         drawLabel("Medium", 500, 325, size=24)
 
-        drawRect(600, 300, 200, 50, fill='red' if app.difficulty == 'hard' else None, border='red')
-        drawLabel("Hard", 700, 325, size=24)
+        drawRect(700, 300, 200, 50, fill='red' if app.difficulty == 'hard' else None, border='red')
+        drawLabel("Hard", 800, 325, size=24)
 
         # Current Difficulty Display
-        drawLabel(f"Current Difficulty: {app.difficulty.capitalize()}", 500, 400, size=24)
+        drawLabel(f"Current Difficulty: {app.difficulty.capitalize()}", 500, 400, fill = 'white', size=24)
 
         # Difficulty Details (changes by difficulty)
         settings = app.difficulty_settings[app.difficulty]
-        drawLabel(f"Pages to Collect: {settings['max_pages']}", 500, 450, size=20)
-        drawLabel(f"Monster Speed: {settings['monster_base_speed']:.3f}", 500, 480, size=20)
-        drawLabel(f"Darkness Level: {settings['base_darkness']}", 500, 510, size=20)
+        drawLabel(f"Pages to Collect: {settings['max_pages']}", 500, 450, fill = 'white', size=20)
+        drawLabel(f"Monster Speed: {settings['monster_base_speed']:.3f}", 500, 480, fill = 'white', size=20)
+        drawLabel(f"Darkness Level: {settings['base_darkness']}", 500, 510, fill = 'white', size=20)
 
         # Back to Homepage
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size=20)
-        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, fill = 'white', size=20)
+        drawRect(825, 25, 150, 50, fill=None, border="white", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, fill = 'white', size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="white", borderWidth=5)
 
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size=20)
-        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, fill = 'white', size=20)
+        drawRect(825, 25, 150, 50, fill=None, border="white", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, fill = 'white', size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="white", borderWidth=5)
 
     elif app.page == "howtopage":
-        drawLabel("How to Play 112 BackRooms!", 200, 200)
-        drawLabel("There are scary monsters (cough) chasing you in this game..", 200, 300)
-        drawLabel("The goal in this game is to run away, while obtaining 8 pages that are randomly distributed throughout the map!", 200, 400)
-        drawLabel("Keep in mind that the map is auto generated as you stray away from spawn.", 200, 500)
-        drawLabel("You can only see the monster when it is faced in front of you!", 200, 600)
-        drawLabel("This means that if you don't see the monster, it might be behind you!", 200, 700)
-        drawLabel("There will be a scary sound whenever the monster is close to you!", 200, 800)
-        drawImage(app.url["Monster"], 800, 500)
+        drawImage('Code/images/howtobackground.png',0,0, width = app.width, height = app.height)
+        drawImage('Code/images/HowTo.png', 0, 0, width = 700, height = 850)
+        drawImage('Code/images/Kozbie.jpg', 725, 525, width = 225, height = 225)
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20)
-        drawRect(825, 25, 150, 50, fill=None, border="black", borderWidth=5)
-        drawLabel('To Homepage', 900, 110, size=20)
-        drawRect(825, 85, 150, 50, fill=None, border="black", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, fill = 'white', size=20)
+        drawRect(825, 25, 150, 50, fill=None, border="white", borderWidth=5)
+        drawLabel('To Homepage', 900, 110, fill = 'white', size=20)
+        drawRect(825, 85, 150, 50, fill=None, border="white", borderWidth=5)
         
     elif app.page == "homepage":
 
@@ -841,13 +835,13 @@ def redrawAll(app):
         app.henry.draw(app)
         distance = app.kozbie.calculate_distance(app.henry)
 
+        #Austin
         drawImage('Code/images/thegoat.png', 180, 450, width = 150, height = 150)
         drawImage('Code/images/preach.png', -100, 250, width = 350, height = 350)
 
+        #buttons
         drawImage('Code/images/UI/PlaygameButton.png', 250, 750, width = 210, height = 75, align = 'center')
-    
         drawImage('Code/images/UI/HowToPlayButton.png', 500, 750, width = 210, height = 75, align = 'center')
-
         drawImage('Code/images/UI/SettingsButton.png', 750, 750, width = 210, height = 75, align = 'center')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
@@ -856,12 +850,10 @@ def redrawAll(app):
     
     elif app.page == "mainpage":
         # Draw sky
-
         drawRect(0, app.height/2, app.width, app.height/2, fill = 'white')
 
         drawImage("Code/images/GameSky.jpg", 0, 0, align = 'center', width = 2000, height = 1000)
         drawImage("Code/images/GameGround.png", 0, 1000, align = 'center', width = 2000, height = 1000)
-        # THE CODE ABOVE IS FOR THE BACKGROUND THAT DOESNT WORK RN
         
         # Cast rays and draw walls
         for i in range(app.rayCount):
@@ -892,7 +884,6 @@ def redrawAll(app):
 
         
         # Draw monster 
-
         # Obtained atan2 function implementation from a StackOverflow Inquiry as user "Alctoria"
         # OPTIONAL FIX: Create a represetnation of Kozbie where he is only partially shown when there is a wall between him and user's full sight of view.
 
@@ -912,13 +903,13 @@ def redrawAll(app):
         
         # Draw UI elements
 
-        drawLabel("Use arrow keys to move", 500, 50, size=20, fill='red')
-        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='red')
-        drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 500, 150, size=20, fill='red')
+        drawLabel("Use arrow keys to move", 500, 50, size=20, fill='white')
+        drawLabel(f"Player Position: ({app.playerX:.2f}, {app.playerY:.2f})", 500, 100, size=20, fill='white')
+        drawLabel(f"Distance to Monster: {monsterDistance:.2f}", 500, 150, size=20, fill='white')
         
         musicStatus = "Music: ON" if app.musicOn else "Music: OFF"
-        drawLabel(musicStatus, 900, 50, size=20, fill='red')
-        drawRect(825, 25, 150, 50, fill=None, border="red", borderWidth=5)
+        drawLabel(musicStatus, 900, 50, size=20, fill='white')
+        drawRect(825, 25, 150, 50, fill=None, border="white", borderWidth=5)
 
         # Draw health bar
         # Health bar background
@@ -934,20 +925,20 @@ def redrawAll(app):
             page.draw(app)
         
         # Display pages collected
-        drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 500, 200, size=20, fill='red')
+        drawLabel(f"Pages Collected: {app.pages_collected}/{app.max_pages}", 500, 200, size=20, fill='white')
         
         app.lightingSystem.apply_lighting_effect()
 
         if app.gameOver:
             drawRect(0, 0, app.width, app.height, fill='black', opacity=80)   
             # Draw game over text
-            drawLabel("GAME OVER", app.width/2, app.height/2, size=64, fill='red', bold=True)
+            drawImage('Code/images/youdie.png', 300, 50)
+
+            drawLabel("GAME OVER", app.width/2, app.height/2, size=64, fill='white', bold=True)
             drawLabel("Press 'R' to restart", app.width/3, app.height/2 + 100, size=32, fill='red')
             drawLabel("Go Back to Homepage", app.width * 2/3, app.height/2 + 100, size = 32, fill = 'red')
             drawRect(190,575,285,50,fill = None, border = 'red')
             drawRect(500,575,340,50,fill = None, border = 'red')
-
-
     
     if app.page != 'mainpage': #not mainpage as mainpage is the gameplay page!
         #draw borders, all four sides
