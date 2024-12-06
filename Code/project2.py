@@ -253,21 +253,21 @@ def onAppStart(app):
 
     app.difficulty_settings = {
         "easy": {
-            "monster_base_speed": 0.025,
+            "monster_base_speed": 0.050,
             "monster_speed_increment": 0.005,
             "base_darkness": 20,
             "max_pages": 4,
             "health_decay_rate": 0.05
         },
         "medium": {
-            "monster_base_speed": 0.030,
+            "monster_base_speed": 0.060,
             "monster_speed_increment": 0.005,
             "base_darkness": 30,
             "max_pages": 6,
             "health_decay_rate": 0.1
         },
         "hard": {
-            "monster_base_speed": 0.035,
+            "monster_base_speed": 0.075,
             "monster_speed_increment": 0.005,
             "base_darkness": 40,
             "max_pages": 8,
