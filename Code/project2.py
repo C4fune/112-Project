@@ -145,6 +145,13 @@ class Hazard:
 # Optional: Potentially optimize this if it becomes laggy
 # PRIORITY: Create an immersive and terrifying lighting experience
 
+"""
+CITATION:
+Dynamic lighting system implementation inspired by Unity's 2D Lighting Tutorial:
+https://unity.com/how-to/2d-game-lighting
+The flicker effect and radial gradient techniques were adapted from their real-time lighting examples.
+"""
+
 class LightingSystem:
     def __init__(self, app):
         self.app = app
@@ -177,6 +184,13 @@ class LightingSystem:
         proximity_factor = max(0, 20 - (monster_distance * 5))
         
         # Add slight random flickering
+
+        
+        """
+        CITATION:
+        Code from 188-191 is inspired heavily from Slender man Design Process Video created by Blue Isle:
+        """
+        
         # SELFNOTE: Don't make this too crazy or it'll become laggy!
         self.flicker_timer += 1
         if self.flicker_timer >= self.flicker_interval:
@@ -282,6 +296,13 @@ def onAppStart(app):
         "scary": Sound("https://kappa.vgmsite.com/soundtracks/outlast-soundtrack-2013/dmoxehqcha/14%20-%20Explosion.mp3")  # Add a scary sound
     }
 
+    
+
+    """
+    CITATION:
+    Movie Sounds are obtained from KhinSider 
+    """
+
     app.url = {
         "Page1" : 'Code/images/IntroPic.jpg',
         "Monster" : 'Code/images/Kozbie.jpg'
@@ -324,6 +345,7 @@ def onAppStart(app):
     app.chunks[(0, 0)] = generateInitialChunk()  
     
     #player init position/angle
+    
     app.playerX = 1.5
     app.playerY = 1.5
     app.playerAngle = 0
@@ -405,10 +427,13 @@ def generatePagesInChunk(chunk_x, chunk_y, image_url, total_pages, max_pages):
             break
     
     return pages
+    
+# Possibly change max_hazards accordingly with difficulty
+
 
 def generateHazardsInChunk(chunk_x, chunk_y, max_hazards=30):
     hazards = []
-    hazard_count = random.randint(10, max_hazards)
+    hazard_count = random.randint(10, max_hazards) 
     for _ in range(hazard_count):
         hazard_type = random.choice([2, 3])
         local_x = random.uniform(0, 8)
@@ -446,6 +471,13 @@ def generateInitialChunk():
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
     ]
+
+"""
+CITATION:
+Procedural dungeon generation algorithm inspired by Roguelike Tutorial Series by RogueBasin:
+http://roguebasin.com/index.php/Complete_Roguelike_Tutorial
+The wall probability and path validation approach was adapted from their maze generation techniques.
+"""
 
 def generateNewChunk():
     # Generate a new chunk without border walls
@@ -652,6 +684,14 @@ def movePlayer(app, distance):
     
     newX = app.playerX + math.cos(app.playerAngle) * distance * timeScale
     newY = app.playerY + math.sin(app.playerAngle) * distance * timeScale
+
+        
+    """
+    CITATION:
+    Time Scale Implementation was obtained from Data Wizual YT Channel
+    The user used:
+    clock = pygame.Time.Clock() and created an alternative function where the clock variable was not an actual timer, but more like a coefficient
+    """
     
     # Boundary checks remain the same
     if newX < 0: newX = 0
@@ -667,6 +707,13 @@ def movePlayer(app, distance):
         app.playerY = newY
 
 def castRay(app, angle):
+
+    """
+    CITATION:
+    Inquiry as user "Alctoria" in StackOverflow. A user named Stratos12 game me a RayCasting documentation for Unity/Pygame.
+    https://docs.godotengine.org/en/stable/classes/class_raycast3d.html
+    """
+    
     x, y = app.playerX, app.playerY
     sin_a = math.sin(angle)
     cos_a = math.cos(angle)
@@ -732,6 +779,7 @@ def updateMonster(app):
     # Calculate new position
     app.monsterX = app.monsterX + dx * app.monsterSpeed
     app.monsterY = app.monsterY + dy * app.monsterSpeed
+
 
 def onStep(app):
     if app.page == "mainpage" and not app.gameOver:
@@ -871,14 +919,14 @@ def redrawAll(app):
             
             if hazard_type is None:
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill="black", lineWidth = 5)
-
+            
             elif hazard_type == 2:
-                color = app.hazards[0].color_map.get(hazard_type, 'red')
-                opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
+                color = app.hazards[0].color_map.get(hazard_type, 'red') #CITATION: This code has been obtained from a StackOverflow Inquiry
+                opacity = app.hazards[0].opacity_map.get(hazard_type, 50) 
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
 
             elif hazard_type == 3:
-                color = app.hazards[0].color_map.get(hazard_type, 'red')
+                color = app.hazards[0].color_map.get(hazard_type, 'red') CITATION: This code has been obtained from a StackOverflow Inquiry
                 opacity = app.hazards[0].opacity_map.get(hazard_type, 50)
                 drawLine(x, app.height/2 - wallHeight/2, x, app.height/2 + wallHeight/2, fill=color, opacity=opacity, lineWidth = 5)
 
@@ -959,3 +1007,20 @@ def main():
     runApp()
 
 main()
+
+"""
+CITATION (overall:
+Collision detection and movement smoothing adapted from "Game Programming Patterns" 
+by Robert Nystrom (2014), Chapter 3: Game Loop Pattern.
+The timeScale implementation was modified from their fixed timestep game loop pattern.
+
+The active idea of updating pages through using 100 fps (frame per seond through using app.stepsperSecond was an idea that I found while reading for my tp project
+
+Unity/Pygame/Libraries (Advanced Raycast)
+
+*Please note that none of my code in Raycast are copies (you can check literally word for word).*
+They are original, but the conceptual design of algorithm comes from mostly how Unity utilizes Raycast functions
+
+Youtube Video: (Technical History of creating Doom and how you can do it too!)
+While my game is not Doom, the algorithm concept is really similar
+"""
