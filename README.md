@@ -1,3 +1,5 @@
+NOTE: I DO NOT SUPPORT CHEATING. PLEASE DO NOT USE MY CODE FOR YOUR 112 PROJECTS. The only reason this project is currently public is because it is for showcase for my CV.
+
 TP3 Deliverables:
 
 15112 Backrooms, By Henry Kim
